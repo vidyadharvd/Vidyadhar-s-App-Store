@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Daily Notes",
+    "url": "https://example.com/notes",
+    "description": "Capture thoughts and ideas in one quick place.",
+    "tag": "productivity",
+    "image": "assets/placeholder.svg"
+  },
+  {
+    "name": "Task Tracker",
+    "url": "https://example.com/tasks",
+    "description": "Lightweight to-do list with keyboard shortcuts.",
+    "tag": "productivity",
+    "image": "assets/placeholder.svg"
+  },
+  {
+    "name": "Quick Calc",
+    "url": "https://example.com/calc",
+    "description": "Calculator with unit and currency conversion.",
+    "tag": "tools",
+    "image": "assets/placeholder.svg"
+  },
+  {
+    "name": "Color Palette",
+    "url": "https://example.com/palette",
+    "description": "Generate and save color palettes.",
+    "tag": "design",
+    "image": "assets/placeholder.svg"
+  },
+  {
+    "name": "Markdown Studio",
+    "url": "https://example.com/markdown",
+    "description": "Write and preview markdown side by side.",
+    "tag": "writing",
+    "image": "assets/placeholder.svg"
+  },
+  {
+    "name": "Mood Tracker",
+    "url": "https://example.com/mood",
+    "description": "Log how you feel each day with a single tap.",
+    "tag": "health",
+    "image": "assets/placeholder.svg"
+  },
+  {
+    "name": "Reading List",
+    "url": "https://example.com/reading",
+    "description": "Save articles and books to read later.",
+    "tag": "reading",
+    "image": "assets/placeholder.svg"
+  },
+  {
+    "name": "AI Sidekick",
+    "url": "https://example.com/ai",
+    "description": "Ask, summarize, and brainstorm with an AI helper.",
+    "tag": "ai",
+    "image": "assets/placeholder.svg"
+  }
+]
