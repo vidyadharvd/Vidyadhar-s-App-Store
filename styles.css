@@ -289,18 +289,13 @@ input {
   gap: var(--space-1);              /* tight stack between icon → name → desc */
   padding: var(--card-padding);
   border-radius: var(--radius-card);
-  background-color: var(--color-card-1);  /* default; nth-child overrides cycle pastels */
+  background-color: #ffffff;
   color: var(--color-text-primary);
   box-shadow: var(--shadow-card);
   transition: transform var(--transition-base), box-shadow var(--transition-base);
   /* Cards are <a>; prevent inherited underline / blue from showing through. */
   text-decoration: none;
 }
-
-/* Cycle the three card backgrounds across the grid. */
-.app-card:nth-child(3n + 1) { background-color: var(--color-card-1); }
-.app-card:nth-child(3n + 2) { background-color: var(--color-card-2); }
-.app-card:nth-child(3n)     { background-color: var(--color-card-3); }
 
 .app-card:hover {
   transform: scale(1.02);
