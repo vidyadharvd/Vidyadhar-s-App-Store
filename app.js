@@ -153,8 +153,12 @@ function buildCard(app) {
   const card = document.createElement("a");
   card.className = "app-card";
   card.href = app.url;
-  card.target = "_blank";
-  card.rel = "noopener noreferrer";
+
+  const cardUrl = new URL(app.url, window.location.href);
+  if (cardUrl.origin !== window.location.origin) {
+    card.target = "_blank";
+    card.rel = "noopener noreferrer";
+  }
 
   // Icon — fall back to placeholder if no image or if the image fails to load.
   const iconWrap = document.createElement("span");

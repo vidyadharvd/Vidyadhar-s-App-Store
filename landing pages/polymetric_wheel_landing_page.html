@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Polymetric Wheel</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #08090b;
+      --panel: #101216;
+      --panel-soft: #151820;
+      --text: #f5f1e8;
+      --muted: #a8a394;
+      --quiet: #6e716e;
+      --line: #2b3036;
+      --yellow: #fff15a;
+      --pink: #ff7d9a;
+      --cyan: #68e7d7;
+      --green: #9ef089;
+      --violet: #b48cff;
+      --shadow: rgba(0, 0, 0, 0.42);
+      font-family:
+        Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      font-size: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+      color: var(--text);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      overflow: hidden;
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      position: relative;
+      padding: 42px 0 34px;
+    }
+
+    .hero-grid {
+      display: grid;
+      gap: 28px;
+      align-items: center;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .eyebrow,
+    .kicker,
+    .step-label,
+    .meta,
+    .screen-mono {
+      font-family:
+        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      letter-spacing: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--cyan);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 900px;
+      margin-bottom: 16px;
+      font-size: 3rem;
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .subheadline {
+      max-width: 720px;
+      margin: 0 auto 22px;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.65;
+    }
+
+    .cta-row {
+      display: flex;
+      justify-content: center;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #f6e95b;
+      border-radius: 8px;
+      background: var(--yellow);
+      color: #11120f;
+      padding: 0 20px;
+      font-weight: 760;
+      text-decoration: none;
+      box-shadow: 0 14px 34px rgba(255, 241, 90, 0.18);
+    }
+
+    .button:hover {
+      background: #fff68a;
+      transform: translateY(-1px);
+    }
+
+    .button:focus-visible {
+      outline: 3px solid rgba(104, 231, 215, 0.72);
+      outline-offset: 4px;
+    }
+
+    .product-screenshot {
+      width: min(100%, 980px);
+      margin: 8px auto 0;
+    }
+
+    .screenshot-frame {
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: #090a0c;
+      box-shadow:
+        0 30px 90px var(--shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .screen {
+      display: grid;
+      min-height: 520px;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 12px;
+      padding: 18px;
+      color: #e9e5db;
+      font-family:
+        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    .screen-top,
+    .screen-bottom {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      font-size: 0.76rem;
+      color: #8b8e88;
+    }
+
+    .screen-title {
+      margin-bottom: 12px;
+      color: #fbf6ea;
+    }
+
+    .screen-bpm-label,
+    .muted {
+      color: #72756f;
+    }
+
+    .screen-bpm {
+      color: #f5f1e8;
+      font-size: 1.82rem;
+      line-height: 1;
+    }
+
+    .screen-file {
+      min-width: 0;
+      text-align: right;
+    }
+
+    .screen-file div {
+      overflow: hidden;
+      max-width: 260px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .screen-link {
+      display: inline-block;
+      margin-bottom: 12px;
+      color: #c6c6bd;
+    }
+
+    .wheel-stage {
+      display: grid;
+      min-height: 0;
+      place-items: center;
+      position: relative;
+    }
+
+    .wheel-wrap {
+      width: min(500px, 78%);
+      max-width: 100%;
+      aspect-ratio: 1;
+      position: relative;
+    }
+
+    .wheel-wrap svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .playhead {
+      animation: spin 8s linear infinite;
+      transform-origin: 250px 250px;
+    }
+
+    .pulse-a {
+      animation: pulseA 2s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .pulse-b {
+      animation: pulseB 1.5s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .screen-bottom {
+      align-items: end;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    }
+
+    .legend {
+      display: grid;
+      gap: 6px;
+    }
+
+    .legend-row {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+    }
+
+    .play {
+      display: grid;
+      width: 54px;
+      height: 54px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 50%;
+      background: #f6efe0;
+      color: #090a0c;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      box-shadow: 0 12px 40px rgba(255, 241, 90, 0.14);
+    }
+
+    .play::before {
+      content: "";
+      width: 0;
+      height: 0;
+      margin-left: 4px;
+      border-top: 9px solid transparent;
+      border-bottom: 9px solid transparent;
+      border-left: 14px solid #090a0c;
+    }
+
+    .warning {
+      justify-self: end;
+      max-width: 330px;
+      text-align: right;
+      line-height: 1.55;
+    }
+
+    .screen-caption {
+      margin: 12px 0 0;
+      color: var(--quiet);
+      font-size: 0.82rem;
+      text-align: center;
+    }
+
+    .section {
+      padding: 44px 0;
+    }
+
+    .section-heading {
+      max-width: 700px;
+      margin: 0 auto 24px;
+      text-align: center;
+    }
+
+    .kicker {
+      margin-bottom: 8px;
+      color: var(--pink);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: 2rem;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .cards,
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card,
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 22px;
+      min-height: 178px;
+    }
+
+    .card:nth-child(2),
+    .step:nth-child(2) {
+      background: var(--panel-soft);
+    }
+
+    .card h3,
+    .step h3 {
+      margin-bottom: 10px;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    .card p,
+    .step p {
+      margin-bottom: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .card-icon {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 18px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      font-family:
+        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.86rem;
+      color: #11120f;
+      font-weight: 900;
+    }
+
+    .card:nth-child(1) .card-icon {
+      background: var(--cyan);
+    }
+
+    .card:nth-child(2) .card-icon {
+      background: var(--pink);
+    }
+
+    .card:nth-child(3) .card-icon {
+      background: var(--green);
+    }
+
+    .step-label {
+      display: inline-grid;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 18px;
+      place-items: center;
+      border-radius: 50%;
+      background: #22262c;
+      color: var(--yellow);
+      font-size: 0.78rem;
+    }
+
+    .final-cta {
+      padding: 46px 0 62px;
+    }
+
+    .final-band {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 28px 0;
+    }
+
+    .final-band p {
+      margin: 0;
+      color: var(--text);
+      font-size: 1.28rem;
+      line-height: 1.35;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulseA {
+      0%, 100% {
+        opacity: 0.42;
+      }
+      45% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulseB {
+      0%, 100% {
+        opacity: 0.7;
+      }
+      55% {
+        opacity: 1;
+      }
+    }
+
+    @media (min-width: 840px) {
+      .hero {
+        padding-top: 54px;
+      }
+
+      h1 {
+        font-size: 4.7rem;
+      }
+
+      .subheadline {
+        font-size: 1.16rem;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: min(100% - 28px, 1120px);
+      }
+
+      .hero {
+        padding-top: 30px;
+      }
+
+      h1 {
+        font-size: 2.65rem;
+      }
+
+      .subheadline {
+        font-size: 1rem;
+      }
+
+      .screen {
+        min-height: 430px;
+        padding: 14px;
+      }
+
+      .screen-top {
+        grid-template-columns: 1fr;
+      }
+
+      .screen-file {
+        display: none;
+      }
+
+      .wheel-wrap {
+        width: min(360px, 88%);
+      }
+
+      .screen-bottom {
+        grid-template-columns: 1fr auto;
+      }
+
+      .warning {
+        display: none;
+      }
+
+      .cards,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .card,
+      .step {
+        min-height: auto;
+      }
+
+      .final-band {
+        display: grid;
+        justify-items: start;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .hero-grid {
+        gap: 20px;
+      }
+
+      h1 {
+        font-size: 2.22rem;
+      }
+
+      .screen {
+        min-height: 370px;
+      }
+
+      .screen-bpm {
+        font-size: 1.45rem;
+      }
+
+      .legend-row {
+        font-size: 0.68rem;
+      }
+
+      .play {
+        width: 48px;
+        height: 48px;
+      }
+
+      .section {
+        padding: 36px 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="shell hero-grid">
+        <div>
+          <p class="eyebrow">Browser-only Ableton loop mapper</p>
+          <h1 id="hero-title">Turn Ableton loops into orbiting rhythm maps.</h1>
+          <p class="subheadline">
+            Drop an .als file, optionally add your bounce, and Polymetric Wheel
+            renders the loop as synchronized concentric rings. No uploads, no
+            setup, just the groove made visible.
+          </p>
+          <div class="cta-row">
+            <a class="button" href="https://polymetric-wheel.vercel.app/">Open Polymetric Wheel</a>
+          </div>
+        </div>
+
+        <figure class="product-screenshot" aria-label="Polymetric Wheel product screenshot">
+          <div class="screenshot-frame">
+            <div class="screen">
+              <div class="screen-top">
+                <div class="screen-mono">
+                  <div class="screen-title">Polymetric Wheel</div>
+                  <div class="screen-bpm-label">BPM</div>
+                  <div class="screen-bpm">120</div>
+                  <div class="muted">4/4 &middot; 16 beats</div>
+                </div>
+                <div class="screen-file">
+                  <span class="screen-link">drop another -&gt;</span>
+                  <div>test-loop.als</div>
+                  <div class="muted">attached: test-loop.wav</div>
+                </div>
+              </div>
+
+              <div class="wheel-stage" aria-hidden="true">
+                <div class="wheel-wrap">
+                  <svg viewBox="0 0 500 500" role="img" aria-label="Concentric rhythm wheel visualization">
+                    <defs>
+                      <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feMerge>
+                          <feMergeNode in="blur" />
+                          <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    <g fill="none" stroke-linecap="round">
+                      <circle cx="250" cy="250" r="74" stroke="#2b3036" />
+                      <circle cx="250" cy="250" r="112" stroke="#2b3036" />
+                      <circle cx="250" cy="250" r="150" stroke="#2b3036" />
+                      <circle cx="250" cy="250" r="188" stroke="#2b3036" />
+                      <path d="M250 48 L250 28" stroke="#d4d0c6" stroke-width="1.6" />
+                      <path d="M452 250 L472 250" stroke="#d4d0c6" stroke-width="1.6" />
+                      <path d="M250 452 L250 472" stroke="#d4d0c6" stroke-width="1.6" />
+                      <path d="M48 250 L28 250" stroke="#d4d0c6" stroke-width="1.6" />
+                      <path d="M393 107 L407 93" stroke="#565b62" />
+                      <path d="M393 393 L407 407" stroke="#565b62" />
+                      <path d="M107 393 L93 407" stroke="#565b62" />
+                      <path d="M107 107 L93 93" stroke="#565b62" />
+                    </g>
+
+                    <g fill="#ff7d9a" filter="url(#glow)">
+                      <circle cx="250" cy="176" r="7" />
+                      <circle cx="324" cy="250" r="7" />
+                      <circle cx="250" cy="324" r="7" />
+                      <circle cx="176" cy="250" r="7" />
+                    </g>
+
+                    <g fill="#fff15a">
+                      <circle cx="250" cy="138" r="7" />
+                      <circle cx="293" cy="147" r="7" />
+                      <circle cx="329" cy="171" r="7" />
+                      <circle cx="353" cy="207" r="7" />
+                      <circle cx="362" cy="250" r="7" />
+                      <circle cx="353" cy="293" r="7" />
+                      <circle cx="329" cy="329" r="7" />
+                      <circle cx="293" cy="353" r="7" />
+                      <circle cx="250" cy="362" r="7" />
+                      <circle cx="207" cy="353" r="7" />
+                      <circle cx="171" cy="329" r="7" />
+                      <circle cx="147" cy="293" r="7" />
+                      <circle cx="138" cy="250" r="7" />
+                      <circle cx="147" cy="207" r="7" />
+                      <circle cx="171" cy="171" r="7" />
+                      <circle cx="207" cy="147" r="7" />
+                    </g>
+
+                    <g fill="#68e7d7" class="pulse-a">
+                      <circle cx="250" cy="100" r="5" />
+                      <circle cx="307" cy="111" r="7" />
+                      <circle cx="356" cy="144" r="5" />
+                      <circle cx="389" cy="193" r="7" />
+                      <circle cx="400" cy="250" r="5" />
+                      <circle cx="389" cy="307" r="7" />
+                      <circle cx="356" cy="356" r="5" />
+                      <circle cx="307" cy="389" r="7" />
+                      <circle cx="250" cy="400" r="5" />
+                      <circle cx="193" cy="389" r="7" />
+                      <circle cx="144" cy="356" r="5" />
+                      <circle cx="111" cy="307" r="7" />
+                      <circle cx="100" cy="250" r="5" />
+                      <circle cx="111" cy="193" r="7" />
+                      <circle cx="144" cy="144" r="5" />
+                      <circle cx="193" cy="111" r="7" />
+                    </g>
+
+                    <g fill="#b48cff" class="pulse-b">
+                      <circle cx="250" cy="62" r="4" opacity="0.45" />
+                      <circle cx="322" cy="76" r="7" />
+                      <circle cx="383" cy="117" r="4" opacity="0.45" />
+                      <circle cx="424" cy="178" r="7" />
+                      <circle cx="438" cy="250" r="4" opacity="0.45" />
+                      <circle cx="424" cy="322" r="7" />
+                      <circle cx="383" cy="383" r="4" opacity="0.45" />
+                      <circle cx="322" cy="424" r="7" />
+                      <circle cx="250" cy="438" r="4" opacity="0.45" />
+                      <circle cx="178" cy="424" r="7" />
+                      <circle cx="117" cy="383" r="4" opacity="0.45" />
+                      <circle cx="76" cy="322" r="7" />
+                      <circle cx="62" cy="250" r="4" opacity="0.45" />
+                      <circle cx="76" cy="178" r="7" />
+                      <circle cx="117" cy="117" r="4" opacity="0.45" />
+                      <circle cx="178" cy="76" r="7" />
+                    </g>
+
+                    <g class="playhead">
+                      <path d="M250 250 L250 42" stroke="#f8f2e4" stroke-width="2" />
+                      <circle cx="250" cy="250" r="5" fill="#f8f2e4" />
+                    </g>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="screen-bottom screen-mono">
+                <div class="legend">
+                  <div class="legend-row"><span class="swatch" style="background:#ff7d9a"></span><span>hat</span><span class="muted">4 hits</span></div>
+                  <div class="legend-row"><span class="swatch" style="background:#fff15a"></span><span>kick</span><span class="muted">16 hits</span></div>
+                  <div class="legend-row"><span class="swatch" style="background:#68e7d7"></span><span>bass</span><span class="muted">16 hits</span></div>
+                </div>
+                <div class="play" aria-hidden="true"></div>
+                <div class="warning"><span style="color:#fff15a">[info]</span> melodic content shown as onsets only</div>
+              </div>
+            </div>
+          </div>
+          <figcaption class="screen-caption">Product screenshot: a parsed Ableton loop rendered as synced rhythm rings.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section benefits" aria-labelledby="benefits-title">
+      <div class="shell">
+        <div class="section-heading">
+          <p class="kicker">Benefits</p>
+          <h2 id="benefits-title">Useful at the exact moment a loop gets interesting.</h2>
+          <p>Polymetric Wheel turns timing data into a visual surface producers can scan fast.</p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <div class="card-icon">01</div>
+            <h3>Private by design</h3>
+            <p>Your Ableton project is parsed locally in the browser, so ideas stay on your machine.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">02</div>
+            <h3>Rhythm first</h3>
+            <p>Each ring is a track, each dot is a hit or note onset, and the loop start is always clear.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon">03</div>
+            <h3>Mix-aware playback</h3>
+            <p>Add a wav or mp3 bounce and the wheel follows your real audio instead of a placeholder synth.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section how" aria-labelledby="how-title">
+      <div class="shell">
+        <div class="section-heading">
+          <p class="kicker">How It Works</p>
+          <h2 id="how-title">From project file to moving map in three steps.</h2>
+        </div>
+        <div class="steps">
+          <article class="step">
+            <div class="step-label">1</div>
+            <h3>Drop the project</h3>
+            <p>Load an Ableton .als or XML file. Add a bounce at the same time when you want real mix playback.</p>
+          </article>
+          <article class="step">
+            <div class="step-label">2</div>
+            <h3>Read the structure</h3>
+            <p>The parser extracts tempo, meter, loop length, tracks, onsets, and sidechain timing cues.</p>
+          </article>
+          <article class="step">
+            <div class="step-label">3</div>
+            <h3>Play the wheel</h3>
+            <p>The playhead, dot flashes, and audio stay locked to the same transport through every loop.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta" aria-labelledby="final-title">
+      <div class="shell">
+        <div class="final-band">
+          <p id="final-title">Make the loop show you where it breathes.</p>
+          <a class="button" href="https://polymetric-wheel.vercel.app/">Open the app</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
