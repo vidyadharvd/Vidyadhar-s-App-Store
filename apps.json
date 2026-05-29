@@ -7,10 +7,10 @@
     "image": "assets/polymetric-wheel-favicon.svg"
   },
   {
-    "name": "Task Tracker",
-    "url": "https://example.com/tasks",
-    "description": "Lightweight to-do list with keyboard shortcuts.",
-    "tag": "productivity",
+    "name": "MD Reader",
+    "url": "apps/md-reader.html",
+    "description": "Open, browse, and read local markdown files with search, TOC, theme, and zoom controls.",
+    "tag": "writing",
     "image": "assets/placeholder.svg"
   },
   {
