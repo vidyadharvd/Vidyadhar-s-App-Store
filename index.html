@@ -2,6 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Path-aware base href: lets this app run standalone (/) and proxied at /lab.
+      // Must run before any <link>/<script>/<img> so relative URLs resolve correctly.
+      (function () {
+        var p = window.location.pathname;
+        if (p === "/lab" || p === "/lab/" || p.indexOf("/lab/") === 0) {
+          document.write('<base href="/lab/">');
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="A minimal personal app store to access all of Vidyadhar's apps in one place." />
     <title>Vidyadhar's App Store</title>
