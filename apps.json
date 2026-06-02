@@ -7,9 +7,9 @@
     "image": "assets/polymetric-wheel-favicon.svg"
   },
   {
-    "name": "MD Reader",
-    "url": "apps/md-reader.html",
-    "description": "Open, browse, and read local markdown files with search, TOC, theme, and zoom controls.",
+    "name": "MD Editor",
+    "url": "apps/md-editor.html",
+    "description": "Open, browse, edit, and save local markdown files with live preview, search, TOC, theme, and zoom controls.",
     "tag": "writing",
     "image": "assets/md-file-reader.png"
   }
