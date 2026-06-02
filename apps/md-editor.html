@@ -468,10 +468,10 @@
   .reader hr { border: 0; border-top: 1px solid var(--border); margin: 2.5em 0; }
   .reader img { max-width: 100%; border-radius: 6px; }
 
-  /* Copy buttons */
+  /* Copy & Comment buttons */
   .copyable { position: relative; }
-  .copy-btn {
-    position: absolute; top: 0; right: -34px;
+  .copy-btn, .comment-btn {
+    position: absolute; top: 0;
     width: 24px; height: 24px; border-radius: 5px;
     border: 1px solid var(--border); background: var(--panel); color: var(--muted);
     cursor: pointer; padding: 0;
@@ -480,20 +480,122 @@
     opacity: 0; transition: opacity 0.12s, color 0.12s, background 0.12s, transform 0.12s;
     user-select: none;
   }
-  .copy-btn svg { width: 12px; height: 12px; }
-  .copyable:hover > .copy-btn { opacity: 1; }
+  .copy-btn svg, .comment-btn svg { width: 12px; height: 12px; }
+  .copyable:hover > .copy-btn, .copyable:hover > .comment-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
   .copy-btn.copied { opacity: 1; color: #16a34a; border-color: #16a34a; background: rgba(22,163,74,0.08); }
+  
+  .comment-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .comment-btn.has-comment { opacity: 1; color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  .copy-btn { right: -34px; }
+  .comment-btn { right: -62px; }
+
   /* Headings need a bit more top alignment since they have larger line-height */
-  .reader h1 .copy-btn, .reader h2 .copy-btn { top: 6px; }
-  .reader h3 .copy-btn, .reader h4 .copy-btn { top: 3px; }
+  .reader h1 .copy-btn, .reader h1 .comment-btn,
+  .reader h2 .copy-btn, .reader h2 .comment-btn { top: 6px; }
+  .reader h3 .copy-btn, .reader h3 .comment-btn,
+  .reader h4 .copy-btn, .reader h4 .comment-btn { top: 3px; }
+  
   /* Tables: anchor relative to the table itself */
-  .reader table.copyable > .copy-btn { top: -28px; right: 0; }
+  .reader table.copyable > .copy-btn { top: -28px; right: 28px; }
+  .reader table.copyable > .comment-btn { top: -28px; right: 0; }
+  
   /* Code blocks: button inside the pre at top-right */
-  .reader pre.copyable > .copy-btn { top: 8px; right: 8px; background: var(--panel); }
+  .reader pre.copyable > .copy-btn { top: 8px; right: 36px; background: var(--panel); }
+  .reader pre.copyable > .comment-btn { top: 8px; right: 8px; background: var(--panel); }
+  
   @media (max-width: 1100px) {
-    .copy-btn { right: 4px; background: var(--panel); }
-    .reader h1 .copy-btn, .reader h2 .copy-btn, .reader h3 .copy-btn, .reader h4 .copy-btn { right: 4px; }
+    .copy-btn { right: 32px; background: var(--panel); }
+    .comment-btn { right: 4px; background: var(--panel); }
+    .reader h1 .copy-btn, .reader h2 .copy-btn, .reader h3 .copy-btn, .reader h4 .copy-btn { right: 32px; }
+    .reader h1 .comment-btn, .reader h2 .comment-btn, .reader h3 .comment-btn, .reader h4 .comment-btn { right: 4px; }
+  }
+
+  /* Floating Comment Box */
+  .floating-comment-box {
+    position: absolute;
+    width: 260px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    padding: 12px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: auto;
+  }
+  .comment-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .comment-box-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .comment-box-delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s ease;
+  }
+  .comment-box-delete-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+  }
+  .comment-box-delete-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+  .comment-box-textarea {
+    width: 100%;
+    height: 80px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.4;
+    resize: vertical;
+    outline: none;
+  }
+  .comment-box-textarea:focus {
+    border-color: var(--accent);
+  }
+  .comment-box-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+  .comment-box-save-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.1s ease;
+  }
+  .comment-box-save-btn:hover {
+    filter: brightness(1.05);
   }
 
   /* TOC */
@@ -733,6 +835,18 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </button>
       </div>
+      <div id="floating-comment-box" class="floating-comment-box" style="display: none;">
+        <div class="comment-box-header">
+          <span class="comment-box-title">Section Comment</span>
+          <button class="comment-box-delete-btn" title="Delete comment" type="button">
+            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </div>
+        <textarea class="comment-box-textarea" placeholder="Add an inline comment..."></textarea>
+        <div class="comment-box-footer">
+          <button class="comment-box-save-btn" type="button">Save</button>
+        </div>
+      </div>
     </div>
     <nav class="toc-wrap" id="toc-wrap" style="display:none">
       <div class="toc-header">
@@ -780,6 +894,11 @@
   const saveStatusEl = document.getElementById('save-status');
   const saveFileBtn = document.getElementById('save-file');
   const saveAsFileBtn = document.getElementById('save-as-file');
+
+  const commentBoxEl = document.getElementById('floating-comment-box');
+  const commentTextarea = commentBoxEl ? commentBoxEl.querySelector('.comment-box-textarea') : null;
+  const commentDeleteBtn = commentBoxEl ? commentBoxEl.querySelector('.comment-box-delete-btn') : null;
+  const commentSaveBtn = commentBoxEl ? commentBoxEl.querySelector('.comment-box-save-btn') : null;
 
   // ---------- Marked config ----------
   marked.setOptions({
@@ -872,8 +991,10 @@
             }
           }]
         });
-        await setStoredHandle('files-handles', fileHandles);
         await setStoredHandle('files-source-type', 'files');
+        for (const handle of fileHandles) {
+          await setStoredHandle('file-handle:' + handle.name, handle);
+        }
         document.getElementById('restore-folder').style.display = 'none';
         state.directoryHandle = null;
         
@@ -976,6 +1097,11 @@
     readerEl.style.display = 'none'; tocWrapEl.style.display = 'none'; readerEmptyEl.style.display = 'flex';
     docHeaderEl.style.display = 'none';
     fileCountEl.textContent = '0 files';
+    if (commentBoxEl) {
+      commentBoxEl.style.display = 'none';
+      commentBoxFocused = false;
+    }
+    activeHoverElement = null;
   });
 
   function setFiles(arr) {
@@ -1070,8 +1196,17 @@
   }
 
   function renderPreview(content) {
+    if (commentBoxEl) {
+      commentBoxEl.style.display = 'none';
+      commentBoxFocused = false;
+    }
+    activeHoverElement = null;
+
     const html = marked.parse(content);
     readerEl.innerHTML = html;
+    
+    // Extract comments from DOM comments nodes and store in datasets
+    extractCommentsFromDOM(readerEl);
     
     // Show reader, hide empty
     readerEl.style.display = 'block';
@@ -1084,8 +1219,8 @@
       }
     });
 
-    // Inject copy buttons
-    addCopyButtons();
+    // Inject copy and comment buttons
+    addCopyAndCommentButtons();
 
     // Build TOC
     buildToc();
@@ -1094,47 +1229,143 @@
     readerEl.contentEditable = "true";
   }
 
-  // ---------- Copy buttons ----------
+  // ---------- Comments helpers ----------
+  function getCommentPrefixForElement(el) {
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('.copy-btn, .comment-btn, ul, ol').forEach(n => n.remove());
+    let text = clone.textContent.trim().replace(/\s+/g, ' ');
+    if (!text) {
+      const tag = el.tagName.toLowerCase();
+      if (tag === 'pre') text = 'Code block';
+      else if (tag === 'table') text = 'Table';
+      else if (tag === 'img') text = 'Image';
+      else text = 'Block';
+    }
+    if (text.length <= 12) {
+      return text;
+    }
+    return text.substring(0, 12) + '...';
+  }
+
+  function extractCommentsFromDOM(root) {
+    const commentNodes = [];
+    function walk(node) {
+      if (node.nodeType === Node.COMMENT_NODE) {
+        commentNodes.push(node);
+      } else {
+        for (let i = 0; i < node.childNodes.length; i++) {
+          walk(node.childNodes[i]);
+        }
+      }
+    }
+    walk(root);
+
+    for (const commentNode of commentNodes) {
+      const text = commentNode.nodeValue || '';
+      const match = text.match(/^\s*(.*?)\s*:\s*([\s\S]*)$/);
+      if (match) {
+        const commentBody = match[2].trim();
+        let targetEl = commentNode.previousElementSibling;
+        
+        if (!targetEl) {
+          targetEl = commentNode.parentElement;
+        }
+
+        while (targetEl && (
+          targetEl.classList.contains('copy-btn') || 
+          targetEl.classList.contains('comment-btn') ||
+          targetEl.id === 'highlight-toolbar'
+        )) {
+          targetEl = targetEl.previousElementSibling;
+        }
+
+        let candidate = targetEl;
+        while (candidate) {
+          const tag = candidate.tagName.toLowerCase();
+          if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'blockquote', 'pre', 'table'].includes(tag)) {
+            targetEl = candidate;
+            break;
+          }
+          if (tag === 'ul' || tag === 'ol') {
+            const lastLi = candidate.querySelector('li:last-child');
+            if (lastLi) {
+              targetEl = lastLi;
+              break;
+            }
+          }
+          if (candidate === root) {
+            candidate = null;
+          } else {
+            candidate = candidate.previousElementSibling || candidate.parentElement;
+          }
+        }
+
+        if (targetEl && targetEl !== root) {
+          targetEl.dataset.blockComment = commentBody;
+        }
+      }
+    }
+
+    for (const node of commentNodes) {
+      node.remove();
+    }
+  }
+
+  // ---------- Copy & Comment buttons ----------
   const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
   const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  const COMMENT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
 
-  function addCopyButtons() {
+  function addCopyAndCommentButtons() {
     const selectors = 'h1, h2, h3, h4, h5, h6, p, li, blockquote, pre, table';
     readerEl.querySelectorAll(selectors).forEach(el => {
-      // skip if inside a list item that we're already handling (avoid double buttons on <p> inside <li>)
       if (el.tagName === 'P' && el.closest('li')) return;
-      // skip empty
       if (!el.textContent.trim()) return;
       el.classList.add('copyable');
-      const btn = document.createElement('button');
-      btn.className = 'copy-btn';
-      btn.type = 'button';
-      btn.title = 'Copy';
-      btn.contentEditable = "false";
-      btn.innerHTML = COPY_ICON;
-      btn.addEventListener('click', (e) => {
+      
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.type = 'button';
+      copyBtn.title = 'Copy';
+      copyBtn.contentEditable = "false";
+      copyBtn.innerHTML = COPY_ICON;
+      copyBtn.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
         const md = elementToMarkdown(el);
         navigator.clipboard.writeText(md).then(() => {
-          btn.innerHTML = CHECK_ICON;
-          btn.classList.add('copied');
+          copyBtn.innerHTML = CHECK_ICON;
+          copyBtn.classList.add('copied');
           setTimeout(() => {
-            btn.innerHTML = COPY_ICON;
-            btn.classList.remove('copied');
+            copyBtn.innerHTML = COPY_ICON;
+            copyBtn.classList.remove('copied');
           }, 1200);
         }).catch(() => alert('Copy failed — your browser blocked clipboard access.'));
       });
-      el.appendChild(btn);
+      el.appendChild(copyBtn);
+
+      const commentBtn = document.createElement('button');
+      commentBtn.className = 'comment-btn';
+      if (el.dataset.blockComment) {
+        commentBtn.classList.add('has-comment');
+      }
+      commentBtn.type = 'button';
+      commentBtn.title = 'Add/Edit Comment';
+      commentBtn.contentEditable = "false";
+      commentBtn.innerHTML = COMMENT_ICON;
+      commentBtn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        showCommentBoxFor(el, true);
+      });
+      el.appendChild(commentBtn);
     });
   }
 
   function inlineToMarkdown(node) {
-    // Walk inline children and reconstruct lightweight markdown (skip the copy button itself)
     let out = '';
     node.childNodes.forEach(child => {
       if (child.nodeType === Node.TEXT_NODE) { out += child.nodeValue; return; }
       if (child.nodeType !== Node.ELEMENT_NODE) return;
-      if (child.classList && child.classList.contains('copy-btn')) return;
+      if (child.classList && (child.classList.contains('copy-btn') || child.classList.contains('comment-btn'))) return;
       const tag = child.tagName.toLowerCase();
       if (tag === 'strong' || tag === 'b') out += '**' + inlineToMarkdown(child) + '**';
       else if (tag === 'em' || tag === 'i') out += '*' + inlineToMarkdown(child) + '*';
@@ -1151,47 +1382,55 @@
 
   function elementToMarkdown(el) {
     const tag = el.tagName.toLowerCase();
+    let md = '';
+    
     if (/^h[1-6]$/.test(tag)) {
-      return '#'.repeat(parseInt(tag[1])) + ' ' + inlineToMarkdown(el).trim();
+      md = '#'.repeat(parseInt(tag[1])) + ' ' + inlineToMarkdown(el).trim();
     }
-    if (tag === 'p') return inlineToMarkdown(el).trim();
-    if (tag === 'blockquote') {
-      return inlineToMarkdown(el).trim().split('\n').map(l => '> ' + l).join('\n');
+    else if (tag === 'p') {
+      md = inlineToMarkdown(el).trim();
     }
-    if (tag === 'pre') {
+    else if (tag === 'blockquote') {
+      md = inlineToMarkdown(el).trim().split('\n').map(l => '> ' + l).join('\n');
+    }
+    else if (tag === 'pre') {
       const codeEl = el.querySelector('code');
       const code = codeEl ? codeEl.textContent : el.textContent;
       const langClass = codeEl ? (codeEl.className.match(/language-(\S+)/) || [])[1] : '';
-      return '```' + (langClass || '') + '\n' + code.replace(/\n$/, '') + '\n```';
+      md = '```' + (langClass || '') + '\n' + code.replace(/\n$/, '') + '\n```';
     }
-    if (tag === 'li') {
+    else if (tag === 'li') {
       const parent = el.parentElement;
-      // Get the item's direct text (excluding nested lists)
       const clone = el.cloneNode(true);
-      // remove nested lists and copy button from clone before extracting text
-      clone.querySelectorAll('ul, ol, .copy-btn').forEach(n => n.remove());
+      clone.querySelectorAll('ul, ol, .copy-btn, .comment-btn').forEach(n => n.remove());
       const ownText = inlineToMarkdown(clone).trim();
-      // Reconstruct nested lists separately
       let nested = '';
       el.querySelectorAll(':scope > ul, :scope > ol').forEach(sub => {
         nested += '\n' + indent(elementToMarkdown(sub), '  ');
       });
       if (parent && parent.tagName === 'OL') {
         const idx = Array.from(parent.children).indexOf(el) + 1;
-        return idx + '. ' + ownText + nested;
+        md = idx + '. ' + ownText + nested;
+      } else {
+        md = '- ' + ownText + nested;
       }
-      return '- ' + ownText + nested;
+      
+      if (el.dataset && el.dataset.blockComment) {
+        const prefixText = getCommentPrefixForElement(el);
+        md += `\n<!-- ${prefixText}: ${el.dataset.blockComment} -->`;
+      }
+      return md;
     }
-    if (tag === 'ul' || tag === 'ol') {
+    else if (tag === 'ul' || tag === 'ol') {
       const items = Array.from(el.children).filter(c => c.tagName === 'LI');
       return items.map(li => elementToMarkdown(li)).join('\n');
     }
-    if (tag === 'table') {
+    else if (tag === 'table') {
       const rows = Array.from(el.querySelectorAll('tr'));
       if (!rows.length) return el.textContent.trim();
       const cellText = (c) => {
         const clone = c.cloneNode(true);
-        clone.querySelectorAll('.copy-btn').forEach(n => n.remove());
+        clone.querySelectorAll('.copy-btn, .comment-btn').forEach(n => n.remove());
         return inlineToMarkdown(clone).replace(/\|/g, '\\|').trim();
       };
       const lines = rows.map(tr =>
@@ -1201,9 +1440,19 @@
       if (lines.length > 1) {
         lines.splice(1, 0, '| ' + Array(colCount).fill('---').join(' | ') + ' |');
       }
-      return lines.join('\n');
+      md = lines.join('\n');
     }
-    return inlineToMarkdown(el).trim();
+    else {
+      md = inlineToMarkdown(el).trim();
+    }
+
+    if (tag !== 'li' && tag !== 'ul' && tag !== 'ol') {
+      if (el.dataset && el.dataset.blockComment) {
+        const prefixText = getCommentPrefixForElement(el);
+        md += `\n<!-- ${prefixText}: ${el.dataset.blockComment} -->`;
+      }
+    }
+    return md;
   }
 
   function indent(s, pad) { return s.split('\n').map(l => pad + l).join('\n'); }
@@ -1225,7 +1474,7 @@
 
     headings.forEach((h, idx) => {
       const clone = h.cloneNode(true);
-      clone.querySelectorAll('.copy-btn').forEach(btn => btn.remove());
+      clone.querySelectorAll('.copy-btn, .comment-btn').forEach(btn => btn.remove());
       const headingText = clone.textContent.trim();
       
       if (!h.id) h.id = 'h-' + idx + '-' + headingText.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0, 50);
@@ -1438,7 +1687,6 @@
     void highlightToolbar.offsetWidth; // Force layout
     highlightToolbar.classList.add('show');
   }
-
   function hideHighlightToolbar() {
     if (highlightToolbar.classList.contains('show')) {
       highlightToolbar.classList.remove('show');
@@ -1449,6 +1697,170 @@
       }, 120);
     }
   }
+
+  // ---------- Floating Comment Box Interaction ----------
+  let activeHoverElement = null;
+  let activeBlockHovered = false;
+  let commentBoxHovered = false;
+  let commentBoxFocused = false;
+  let commentHideTimeout = null;
+
+  function showCommentBoxFor(block, focusTextarea = false) {
+    if (!block) return;
+    activeHoverElement = block;
+
+    const comment = block.dataset.blockComment || '';
+    commentTextarea.value = comment;
+
+    const rect = block.getBoundingClientRect();
+    const containerRect = readerWrap.getBoundingClientRect();
+
+    const boxWidth = 260;
+    let left = rect.right - containerRect.left + readerWrap.scrollLeft + 12;
+    const maxLeft = containerRect.width - boxWidth - 16 + readerWrap.scrollLeft;
+    if (left > maxLeft) {
+      left = maxLeft;
+    }
+
+    let top = rect.top - containerRect.top + readerWrap.scrollTop;
+
+    commentBoxEl.style.left = left + 'px';
+    commentBoxEl.style.top = top + 'px';
+    commentBoxEl.style.display = 'flex';
+
+    if (focusTextarea) {
+      setTimeout(() => commentTextarea.focus(), 10);
+    }
+  }
+
+  function checkHideCommentBox() {
+    clearTimeout(commentHideTimeout);
+    commentHideTimeout = setTimeout(() => {
+      if (!activeBlockHovered && !commentBoxHovered && !commentBoxFocused) {
+        commentBoxEl.style.display = 'none';
+        activeHoverElement = null; // Clear active reference only when comment card actually hides
+      }
+    }, 200);
+  }
+
+  // Hovering on blocks
+  readerEl.addEventListener('mouseover', (e) => {
+    if (commentBoxFocused) return; // Keep locked to currently focused block while editing
+    
+    const block = e.target.closest('.copyable');
+    if (block) {
+      clearTimeout(commentHideTimeout);
+      activeBlockHovered = true;
+      if (activeHoverElement !== block) {
+        activeHoverElement = block;
+        if (block.dataset.blockComment) {
+          showCommentBoxFor(block);
+        } else {
+          commentBoxEl.style.display = 'none';
+        }
+      }
+    }
+  });
+
+  readerEl.addEventListener('mouseout', (e) => {
+    if (commentBoxFocused) return; // Keep locked to currently focused block while editing
+    
+    const block = e.target.closest('.copyable');
+    if (block && activeHoverElement === block) {
+      activeBlockHovered = false;
+      checkHideCommentBox();
+    }
+  });
+
+  // Comment box hover
+  commentBoxEl.addEventListener('mouseenter', () => {
+    commentBoxHovered = true;
+    clearTimeout(commentHideTimeout);
+  });
+
+  commentBoxEl.addEventListener('mouseleave', () => {
+    commentBoxHovered = false;
+    checkHideCommentBox();
+  });
+
+  // Comment box textarea focus
+  commentTextarea.addEventListener('focus', () => {
+    commentBoxFocused = true;
+    clearTimeout(commentHideTimeout);
+  });
+
+  commentTextarea.addEventListener('blur', () => {
+    commentBoxFocused = false;
+    checkHideCommentBox();
+  });
+
+  // Textarea input
+  commentTextarea.addEventListener('input', () => {
+    if (!activeHoverElement) return;
+    const val = commentTextarea.value.trim();
+    const commentBtn = activeHoverElement.querySelector('.comment-btn');
+
+    if (val) {
+      activeHoverElement.dataset.blockComment = val;
+      if (commentBtn) commentBtn.classList.add('has-comment');
+    } else {
+      delete activeHoverElement.dataset.blockComment;
+      if (commentBtn) commentBtn.classList.remove('has-comment');
+    }
+
+    // Trigger editor input event to update draft and autosave
+    readerEl.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  // Delete comment
+  commentDeleteBtn.addEventListener('click', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    if (!activeHoverElement) return;
+
+    commentTextarea.value = '';
+    delete activeHoverElement.dataset.blockComment;
+    
+    const commentBtn = activeHoverElement.querySelector('.comment-btn');
+    if (commentBtn) commentBtn.classList.remove('has-comment');
+
+    commentBoxEl.style.display = 'none';
+    commentBoxFocused = false;
+
+    // Trigger editor input event to update and autosave
+    readerEl.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  // Save comment and close box
+  if (commentSaveBtn) {
+    commentSaveBtn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      commentBoxEl.style.display = 'none';
+      commentBoxFocused = false;
+      commentTextarea.blur();
+      if (activeHoverElement) {
+        const val = commentTextarea.value.trim();
+        const commentBtn = activeHoverElement.querySelector('.comment-btn');
+        if (val) {
+          activeHoverElement.dataset.blockComment = val;
+          if (commentBtn) commentBtn.classList.add('has-comment');
+        } else {
+          delete activeHoverElement.dataset.blockComment;
+          if (commentBtn) commentBtn.classList.remove('has-comment');
+        }
+        readerEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  }
+
+  // Support Ctrl/Cmd + Enter key shortcut to save comment
+  commentTextarea.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (commentSaveBtn) {
+        commentSaveBtn.click();
+      }
+    }
+  });
 
   // ---------- Helpers ----------
   function readerToMarkdown() {
@@ -1572,6 +1984,20 @@
     clearTimeout(autosaveTimer);
     if (state.activeIndex === -1) return false;
     const file = state.files[state.activeIndex];
+    
+    // If no file handle exists, but we have a stored directory handle, attempt to restore folder access first
+    if (!file.handle && state.directoryHandle) {
+      await reattachDirectoryHandles();
+    }
+
+    // Backup restore: Check if individual handle is stored key-by-key in IndexedDB
+    if (!file.handle) {
+      const backupHandle = await getStoredHandle('file-handle:' + file.name);
+      if (backupHandle) {
+        file.handle = backupHandle;
+      }
+    }
+
     const textToSave = file.draftContent || '';
     
     if (file.handle) {
@@ -1616,9 +2042,22 @@
       updateSaveStatusBadge();
       renderFileList();
       persist();
+      await saveHandlesToIndexedDB();
       return true;
     }
     return false;
+  }
+
+  async function saveHandlesToIndexedDB() {
+    try {
+      for (const f of state.files) {
+        if (f.handle) {
+          await setStoredHandle('file-handle:' + f.name, f.handle);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to save handles to IndexedDB:', e);
+    }
   }
 
   saveFileBtn.addEventListener('click', saveCurrentFile);
@@ -1805,27 +2244,54 @@
     }
   }
 
+  async function readFileContent(handle) {
+    try {
+      const file = await handle.getFile();
+      return await file.text();
+    } catch (e) {
+      console.error('Failed to read file content:', e);
+      return null;
+    }
+  }
+
   async function reattachDirectoryHandles() {
-    if (!state.directoryHandle) return;
+    if (!state.directoryHandle) return false;
     try {
       const hasPermission = await verifyDirectoryPermission(state.directoryHandle);
-      if (!hasPermission) return;
+      if (!hasPermission) return false;
       
       const fileHandlesMap = new Map();
       await walkDirForHandles(state.directoryHandle, '', fileHandlesMap);
       
-      state.files.forEach(f => {
+      for (const f of state.files) {
         const handle = fileHandlesMap.get(f.path);
         if (handle) {
           f.handle = handle;
+          const diskContent = await readFileContent(handle);
+          if (diskContent !== null) {
+            const isDirty = f.draftContent !== undefined && f.draftContent !== f.content;
+            f.content = diskContent;
+            if (!isDirty) {
+              f.draftContent = diskContent;
+            }
+          }
         }
-      });
+      }
       
       document.getElementById('restore-folder').style.display = 'none';
       updateSaveStatusBadge();
       renderFileList();
+      
+      if (state.activeIndex !== -1) {
+        const activeFile = state.files[state.activeIndex];
+        if (activeFile) {
+          renderPreview(activeFile.draftContent);
+        }
+      }
+      return true;
     } catch (e) {
       console.error('Failed to reattach directory handles:', e);
+      return false;
     }
   }
 
@@ -1843,14 +2309,31 @@
             document.getElementById('restore-folder').style.display = 'block';
           }
         }
-      } else if (sourceType === 'files') {
-        const fileHandles = await getStoredHandle('files-handles');
-        if (Array.isArray(fileHandles) && fileHandles.length) {
-          state.files.forEach(f => {
-            const match = fileHandles.find(h => h.name === f.name);
-            if (match) f.handle = match;
-          });
-          updateSaveStatusBadge();
+      }
+      
+      // Always restore any individual file handles we have stored
+      for (const f of state.files) {
+        if (!f.handle) {
+          const handle = await getStoredHandle('file-handle:' + f.name);
+          if (handle) {
+            f.handle = handle;
+            const diskContent = await readFileContent(handle);
+            if (diskContent !== null) {
+              const isDirty = f.draftContent !== undefined && f.draftContent !== f.content;
+              f.content = diskContent;
+              if (!isDirty) {
+                f.draftContent = diskContent;
+              }
+            }
+          }
+        }
+      }
+      updateSaveStatusBadge();
+      
+      if (state.activeIndex !== -1) {
+        const activeFile = state.files[state.activeIndex];
+        if (activeFile) {
+          renderPreview(activeFile.draftContent);
         }
       }
     } catch (e) {
