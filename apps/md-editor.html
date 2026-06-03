@@ -2,6 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script>
+  // Path-aware base href: lets this app run standalone (/) and proxied at /lab.
+  // Must run before any <link>/<script>/<img> so relative URLs resolve correctly.
+  (function () {
+    var p = window.location.pathname;
+    if (p === "/lab" || p === "/lab/" || p.indexOf("/lab/") === 0) {
+      document.write('<base href="/lab/apps/">');
+    }
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MD Editor</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
@@ -1170,7 +1180,7 @@
   <div class="workspace-area">
     <div class="preview-container" id="preview-container">
       <div class="reader-empty" id="reader-empty">
-        <img src="../assets/md-file-reader.png" alt="Drop in your markdown" />
+        <img src="../assets/md-file-reader.png" alt="Drop in your markdown" onerror="this.onerror=null; if(window.location.pathname.startsWith('/lab')) { this.src='/lab/assets/md-file-reader.png'; } else { this.src='/assets/md-file-reader.png'; }" />
         <div class="big">Drop in your markdown</div>
         <div class="sub">Click <strong>Open folder</strong> to load every <code>.md</code> in a directory, drop files anywhere on this window, or use <kbd>j</kbd>/<kbd>k</kbd> to move between files once loaded.</div>
       </div>
