@@ -10,36 +10,127 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-dark" disabled/>
 <style>
   :root {
-    --bg: #fafaf9;
-    --panel: #ffffff;
-    --border: #e7e5e4;
-    --text: #1c1917;
-    --muted: #78716c;
-    --accent: #c2410c;
-    --accent-soft: #fef3ec;
-    --hover: #f5f5f4;
-    --active: #fed7aa;
-    --code-bg: #f5f5f4;
-    --shadow: 0 1px 2px rgba(0,0,0,0.04);
-    --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
-    --font-serif: ui-serif, "Iowan Old Style", "Apple Garamond", Georgia, Cambria, serif;
-    --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+    /* Foreground */
+    --fgColor-default: #1f2328;
+    --fgColor-muted:   #59636e;
+    --fgColor-subtle:  #818b98;
+    --fgColor-onEmphasis: #ffffff;
+    --fgColor-accent:  #0969da;
+    --fgColor-success: #1a7f37;
+    --fgColor-attention: #9a6700;
+    --fgColor-danger:  #cf222e;
+
+    /* Background */
+    --bgColor-default: #ffffff;
+    --bgColor-muted:   #f6f8fa;
+    --bgColor-inset:   #f6f8fa;
+    --bgColor-hover:   #eaeef2;
+    --bgColor-active:  #dde3ea;
+    --bgColor-accent-muted: #ddf4ff;
+    --bgColor-accent-emphasis: #0969da;
+    --bgColor-danger-emphasis: #cf222e;
+    --bgColor-overlay: #ffffff;
+
+    /* Border */
+    --borderColor-default: #d1d9e0;
+    --borderColor-muted:   #d1d9e0b3;
+    --borderColor-accent:  #0969da;
+    --borderColor-focus:   #0969da;
+
+    /* Shadows */
+    --shadow-resting:  0 1px 0 rgba(31,35,40,0.04);
+    --shadow-floating: 0 8px 24px rgba(31,35,40,0.12);
+    --shadow-overlay:  0 1px 3px rgba(31,35,40,0.12), 0 8px 24px rgba(31,35,40,0.12);
+
+    /* Component-scoped */
+    --dirtyDot-bgColor: var(--fgColor-attention);
+    --selection-bgColor: #b6e3ff;
+
+    /* Spacing */
+    --space-3xs: 2px;
+    --space-2xs: 4px;
+    --space-xs:  8px;
+    --space-sm:  12px;
+    --space-md:  16px;
+    --space-lg:  24px;
+    --space-xl:  32px;
+    --space-2xl: 48px;
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 12px;
+
+    /* Borders / focus */
+    --borderWidth-thin: 1px;
+    --focus-outlineWidth: 2px;
+    --focus-outlineOffset: 2px;
+
+    /* Motion */
+    --motion-fast: 80ms;
+    --motion-base: 150ms;
+    --easing-standard: cubic-bezier(0.2, 0, 0.2, 1);
+
+    /* Stacking */
+    --z-sidebar: 10;
+    --z-docHeader: 20;
+    --z-commentCard: 100;
+    --z-highlightToolbar: 110;
+    --z-menu: 120;
+
+    /* Typography */
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    --font-reader: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --reader-fontSize-body: 1rem;
+    --reader-lineHeight-body: 1.6;
+    --reader-maxWidth: 720px;
+
+    --ui-fontSize-sm: 12px;
+    --ui-fontSize-md: 13px;
+    --ui-fontSize-lg: 14px;
+    --ui-fontWeight-normal: 400;
+    --ui-fontWeight-medium: 500;
+    --ui-fontWeight-semibold: 600;
   }
-  html.dark {
-    --bg: #0c0a09;
-    --panel: #1c1917;
-    --border: #292524;
-    --text: #f5f5f4;
-    --muted: #a8a29e;
-    --accent: #fb923c;
-    --accent-soft: #292524;
-    --hover: #292524;
-    --active: #44403c;
-    --code-bg: #292524;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3);
+  [data-theme="dark"] {
+    --fgColor-default: #f0f6fc;
+    --fgColor-muted:   #9198a1;
+    --fgColor-subtle:  #6e7681;
+    --fgColor-onEmphasis: #ffffff;
+    --fgColor-accent:  #4493f8;
+    --fgColor-success: #3fb950;
+    --fgColor-attention: #d29922;
+    --fgColor-danger:  #f85149;
+
+    --bgColor-default: #0d1117;
+    --bgColor-muted:   #151b23;
+    --bgColor-inset:   #010409;
+    --bgColor-hover:   #1f262e;
+    --bgColor-active:  #272e37;
+    --bgColor-accent-muted: #388bfd1a;
+    --bgColor-accent-emphasis: #1f6feb;
+    --bgColor-danger-emphasis: #da3633;
+    --bgColor-overlay: #151b23;
+
+    --borderColor-default: #3d444d;
+    --borderColor-muted:   #3d444db3;
+    --borderColor-accent:  #4493f8;
+    --borderColor-focus:   #4493f8;
+
+    --shadow-resting:  0 0 0 1px #3d444d;
+    --shadow-floating: 0 8px 24px rgba(1,4,9,0.5);
+    --shadow-overlay:  0 8px 24px rgba(1,4,9,0.5);
+
+    --dirtyDot-bgColor: var(--fgColor-attention);
+    --selection-bgColor: #1f6feb66;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-sans); }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bgColor-default); color: var(--fgColor-default); font-family: var(--font-ui); }
+  ::selection { background: var(--selection-bgColor); }
+  :focus { outline: none; }
+  :focus-visible { outline: var(--focus-outlineWidth) solid var(--borderColor-focus); outline-offset: var(--focus-outlineOffset); border-radius: var(--radius-sm); }
   body {
     display: grid;
     grid-template-columns: var(--sidebar-width, 280px) 1fr;
@@ -50,20 +141,21 @@
 
   /* Sidebar */
   aside {
-    background: var(--panel);
-    border-right: 1px solid var(--border);
+    background: var(--bgColor-muted);
+    border-right: var(--borderWidth-thin) solid var(--borderColor-default);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     position: relative;
     container-type: inline-size;
+    z-index: var(--z-sidebar);
   }
   .brand {
-    padding: 16px 16px 12px;
+    padding: var(--space-md) var(--space-md) var(--space-sm);
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    border-bottom: 1px solid var(--border);
+    gap: var(--space-sm);
+    border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
   }
   .brand-header {
     display: flex;
@@ -72,22 +164,26 @@
     width: 100%;
   }
   .brand-title {
-    font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+    font-weight: var(--ui-fontWeight-semibold);
+    font-size: var(--ui-fontSize-lg);
+    letter-spacing: -0.01em;
+    color: var(--fgColor-default);
   }
   .brand-controls {
     display: flex;
-    gap: 8px;
+    gap: var(--space-xs);
     align-items: center;
     width: 100%;
   }
   .zoom-group {
     display: flex;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--radius-md);
     overflow: hidden;
     flex: 1;
     min-width: 0;
     height: 28px;
+    background: var(--bgColor-default);
   }
   .zoom-group .icon-btn {
     border: none;
@@ -99,50 +195,76 @@
     background: transparent;
   }
   .zoom-group .icon-btn:not(:last-child) {
-    border-right: 1px solid var(--border);
+    border-right: var(--borderWidth-thin) solid var(--borderColor-muted);
   }
   .zoom-group #zoom-reset {
-    font-size: 11px;
+    font-size: var(--ui-fontSize-sm);
   }
   .icon-btn {
-    border: 1px solid var(--border); background: var(--panel); color: var(--text);
-    width: 28px; height: 28px; border-radius: 6px; cursor: pointer;
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    background: var(--bgColor-default);
+    color: var(--fgColor-muted);
+    width: 28px; height: 28px; border-radius: var(--radius-md);
+    cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 13px;
+    font-size: var(--ui-fontSize-md);
+    transition: background var(--motion-fast) var(--easing-standard),
+                color var(--motion-fast) var(--easing-standard),
+                border-color var(--motion-fast) var(--easing-standard);
   }
-  .icon-btn:hover { background: var(--hover); }
+  .icon-btn:hover { background: var(--bgColor-hover); color: var(--fgColor-default); }
   .controls {
-    padding: 0 16px 12px;
+    padding: 0 var(--space-md) var(--space-sm);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-xs);
   }
   .btn {
-    background: var(--accent); color: white; border: none; padding: 8px 12px;
-    border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+    background: var(--bgColor-accent-emphasis);
+    color: var(--fgColor-onEmphasis);
+    border: var(--borderWidth-thin) solid transparent;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--ui-fontSize-md);
+    font-weight: var(--ui-fontWeight-semibold);
+    cursor: pointer;
     width: 100%; text-align: center;
+    transition: filter var(--motion-fast) var(--easing-standard),
+                background var(--motion-fast) var(--easing-standard);
   }
   .btn:hover { filter: brightness(1.05); }
-  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
-  .btn-secondary:hover { background: var(--hover); }
-  .search-wrap { padding: 0 16px 12px; position: relative; }
-  .search {
-    width: 100%; padding: 8px 10px 8px 30px; border: 1px solid var(--border);
-    border-radius: 8px; background: var(--bg); color: var(--text); font-size: 13px;
-    outline: none;
+  .btn-secondary {
+    background: var(--bgColor-default);
+    color: var(--fgColor-default);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
   }
-  .search:focus { border-color: var(--accent); }
+  .btn-secondary:hover { background: var(--bgColor-hover); }
+  .search-wrap { padding: 0 var(--space-md) var(--space-sm); position: relative; }
+  .search {
+    width: 100%; padding: var(--space-xs) 10px var(--space-xs) 30px;
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--radius-sm);
+    background: var(--bgColor-default); color: var(--fgColor-default);
+    font-size: var(--ui-fontSize-md);
+    outline: none;
+    transition: border-color var(--motion-fast) var(--easing-standard);
+  }
+  .search:focus { border-color: var(--borderColor-focus); box-shadow: 0 0 0 3px var(--bgColor-accent-muted); }
   .search-icon {
     position: absolute; left: 26px; top: 50%; transform: translateY(-50%);
-    color: var(--muted); font-size: 13px; pointer-events: none;
+    color: var(--fgColor-subtle); font-size: var(--ui-fontSize-md); pointer-events: none;
   }
-  .file-list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 8px 16px; }
+  .file-list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: var(--space-2xs) var(--space-xs) var(--space-md); }
   .file-item {
-    padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px;
-    color: var(--text); display: block; line-height: 1.4;
-    border: 1px solid transparent;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    cursor: pointer; font-size: var(--ui-fontSize-md);
+    color: var(--fgColor-muted); display: block; line-height: 1.4;
+    border: var(--borderWidth-thin) solid transparent;
     overflow: hidden;
     width: 100%;
+    transition: background var(--motion-fast) var(--easing-standard),
+                color var(--motion-fast) var(--easing-standard);
   }
   .file-item-title {
     white-space: nowrap;
@@ -151,21 +273,29 @@
     flex: 1;
     min-width: 0;
   }
-  .file-item:hover { background: var(--hover); }
-  .file-item.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .file-item:hover { background: var(--bgColor-hover); color: var(--fgColor-default); }
+  .file-item.active {
+    background: var(--bgColor-active);
+    color: var(--fgColor-default);
+    font-weight: var(--ui-fontWeight-medium);
+  }
   .file-path {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 2px;
+    font-size: var(--ui-fontSize-sm);
+    color: var(--fgColor-subtle);
+    margin-top: var(--space-3xs);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .file-item.active .file-path { color: var(--accent); opacity: 0.8; }
+  .file-item.active .file-path { color: var(--fgColor-muted); }
   .empty {
-    padding: 24px 16px; color: var(--muted); font-size: 13px; line-height: 1.5; text-align: center;
+    padding: var(--space-lg) var(--space-md);
+    color: var(--fgColor-muted);
+    font-size: var(--ui-fontSize-md);
+    line-height: 1.5;
+    text-align: center;
   }
-  .empty strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 14px; }
+  .empty strong { color: var(--fgColor-default); display: block; margin-bottom: var(--space-2xs); font-size: var(--ui-fontSize-lg); }
 
   /* Container Query responsive adjustments for Left Panel */
   @container (max-width: 220px) {
@@ -199,30 +329,32 @@
   }
 
   /* Main */
-  main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: var(--bg); }
-  
+  main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: var(--bgColor-default); }
+
   .doc-header {
     height: 52px;
-    border-bottom: 1px solid var(--border);
-    background: var(--panel);
+    border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+    background: var(--bgColor-default);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
+    padding: 0 var(--space-lg);
     flex-shrink: 0;
+    position: sticky; top: 0;
+    z-index: var(--z-docHeader);
   }
   .doc-title-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-sm);
     min-width: 0;
     flex: 1;
-    margin-right: 16px;
+    margin-right: var(--space-md);
   }
   .doc-name {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text);
+    font-weight: var(--ui-fontWeight-semibold);
+    font-size: var(--ui-fontSize-lg);
+    color: var(--fgColor-default);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -230,41 +362,42 @@
     flex: 0 1 auto;
   }
   .save-status-badge {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-weight: 500;
-    background: var(--hover);
-    color: var(--muted);
-    transition: all 0.2s ease;
+    font-size: var(--ui-fontSize-sm);
+    padding: 2px var(--space-xs);
+    border-radius: var(--radius-sm);
+    font-weight: var(--ui-fontWeight-medium);
+    background: transparent;
+    color: var(--fgColor-success);
+    transition: color var(--motion-base) var(--easing-standard);
     flex-shrink: 0;
   }
   .save-status-badge.dirty {
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-weight: 600;
+    color: var(--fgColor-attention);
   }
   .doc-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-xs);
   }
   .icon-btn-text {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--text);
-    padding: 6px 12px;
-    border-radius: 6px;
+    gap: var(--space-2xs);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    background: var(--bgColor-default);
+    color: var(--fgColor-default);
+    padding: var(--space-2xs) var(--space-sm);
+    min-height: 28px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: var(--ui-fontSize-md);
+    font-weight: var(--ui-fontWeight-medium);
+    transition: background var(--motion-fast) var(--easing-standard),
+                border-color var(--motion-fast) var(--easing-standard),
+                color var(--motion-fast) var(--easing-standard);
   }
   .icon-btn-text:hover {
-    background: var(--hover);
-    border-color: var(--text);
+    background: var(--bgColor-hover);
   }
   .icon-btn-text svg {
     width: 14px;
@@ -272,21 +405,20 @@
     fill: currentColor;
   }
   .icon-btn-text.btn-secondary {
-    background: transparent;
-    color: var(--muted);
+    background: var(--bgColor-default);
+    color: var(--fgColor-muted);
   }
   .icon-btn-text.btn-secondary:hover {
-    color: var(--text);
-    background: var(--hover);
+    color: var(--fgColor-default);
+    background: var(--bgColor-hover);
   }
   .icon-btn-text.btn-primary {
-    background: var(--accent);
-    color: white;
+    background: var(--bgColor-accent-emphasis);
+    color: var(--fgColor-onEmphasis);
     border-color: transparent;
   }
   .icon-btn-text.btn-primary:hover {
-    background: var(--accent);
-    filter: brightness(1.1);
+    filter: brightness(1.08);
   }
   .icon-btn-text.btn-primary svg {
     fill: currentColor;
@@ -300,9 +432,9 @@
     position: relative;
   }
   .workspace-area.has-toc {
-    grid-template-columns: 1fr var(--toc-width, 220px);
+    grid-template-columns: 1fr var(--toc-width, 240px);
   }
-  
+
   .resize-handle {
     position: absolute;
     top: 0;
@@ -318,45 +450,45 @@
     width: 1px;
     height: 100%;
     background-color: transparent;
-    transition: background-color 0.15s ease, width 0.15s ease;
+    transition: background-color var(--motion-base) var(--easing-standard), width var(--motion-base) var(--easing-standard);
   }
   .resize-handle:hover::after, .resize-handle.active::after {
-    background-color: var(--accent);
+    background-color: var(--borderColor-accent);
     width: 2px;
   }
   #left-resizer {
     left: calc(var(--sidebar-width, 280px) - 3px);
   }
   #right-resizer {
-    right: calc(var(--toc-width, 220px) - 3px);
+    right: calc(var(--toc-width, 240px) - 3px);
     display: none;
   }
   .workspace-area.has-toc #right-resizer {
     display: flex;
   }
-  
+
   .preview-container {
     flex: 1;
     height: 100%;
     overflow-y: auto;
-    background: var(--bg);
+    background: var(--bgColor-default);
     scroll-behavior: smooth;
-    padding: 48px 64px 120px;
+    padding: var(--space-2xl) var(--space-xl) 120px;
     position: relative;
   }
-  
+
   .highlight-toolbar {
     position: absolute;
-    z-index: 1000;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    z-index: var(--z-highlightToolbar);
+    background: var(--bgColor-overlay);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--radius-lg);
     display: none;
     align-items: center;
     gap: 0;
-    padding: 2px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transition: color 0.12s, border-color 0.12s, background 0.12s, transform 0.12s, opacity 0.12s;
+    padding: var(--space-3xs);
+    box-shadow: var(--shadow-floating);
+    transition: opacity var(--motion-base) var(--easing-standard), transform var(--motion-base) var(--easing-standard);
     opacity: 0;
     pointer-events: none;
   }
@@ -367,43 +499,43 @@
   .highlight-toolbar .toolbar-btn {
     background: transparent;
     border: none;
-    color: var(--muted);
+    color: var(--fgColor-muted);
     width: 28px;
     height: 28px;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     padding: 0;
-    transition: all 0.12s ease;
+    transition: color var(--motion-fast) var(--easing-standard), background var(--motion-fast) var(--easing-standard);
   }
   .highlight-toolbar .toolbar-btn:hover {
-    color: var(--accent);
-    background: var(--accent-soft);
+    color: var(--fgColor-accent);
+    background: var(--bgColor-accent-muted);
   }
   .highlight-toolbar .toolbar-btn svg {
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
   }
   .highlight-toolbar .toolbar-divider {
     width: 1px;
     height: 18px;
-    background-color: var(--border);
-    margin: 0 4px;
+    background-color: var(--borderColor-muted);
+    margin: 0 var(--space-2xs);
   }
   .highlight-toolbar .toolbar-btn.copied {
-    color: #16a34a;
-    background: rgba(22,163,74,0.08);
+    color: var(--fgColor-success);
+    background: transparent;
   }
-  
+
   .dirty-dot {
     display: inline-block;
     width: 6px;
     height: 6px;
-    background-color: var(--accent);
+    background-color: var(--dirtyDot-bgColor);
     border-radius: 50%;
-    margin-left: 6px;
+    margin-left: var(--space-xs);
     vertical-align: middle;
     flex-shrink: 0;
   }
@@ -417,40 +549,44 @@
   }
 
   .reader {
-    max-width: 760px; margin: 0 auto;
-    font-family: var(--font-serif);
-    font-size: calc(17px * var(--zoom, 1)); line-height: 1.7;
-    color: var(--text);
+    max-width: var(--reader-maxWidth); margin: 0 auto;
+    font-family: var(--font-reader);
+    font-size: calc(var(--reader-fontSize-body) * var(--zoom, 1));
+    line-height: var(--reader-lineHeight-body);
+    color: var(--fgColor-default);
   }
   .reader h1, .reader h2, .reader h3, .reader h4 {
-    font-family: var(--font-sans);
+    font-family: var(--font-ui);
     letter-spacing: -0.015em;
-    color: var(--text);
+    color: var(--fgColor-default);
     margin-top: 1.8em; margin-bottom: 0.6em;
     line-height: 1.25;
+    font-weight: var(--ui-fontWeight-semibold);
   }
-  .reader h1 { font-size: 32px; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
-  .reader h2 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-  .reader h3 { font-size: 19px; }
-  .reader h4 { font-size: 16px; color: var(--muted); }
+  .reader h1 { font-size: 2rem; margin-top: 0; border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted); padding-bottom: 14px; }
+  .reader h2 { font-size: 1.5rem; border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted); padding-bottom: var(--space-xs); }
+  .reader h3 { font-size: 1.25rem; }
+  .reader h4 { font-size: 1rem; color: var(--fgColor-muted); }
   .reader p { margin: 1em 0; }
-  .reader a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-  .reader strong { color: var(--text); font-weight: 700; }
+  .reader a { color: var(--fgColor-accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .reader strong { color: var(--fgColor-default); font-weight: 700; }
   .reader em { font-style: italic; }
   .reader blockquote {
-    border-left: 3px solid var(--accent);
-    padding: 4px 16px;
+    border-left: 3px solid var(--borderColor-default);
+    padding: var(--space-2xs) var(--space-md);
     margin: 1.2em 0;
-    color: var(--muted);
-    background: var(--accent-soft);
-    border-radius: 0 6px 6px 0;
+    color: var(--fgColor-muted);
+    background: transparent;
   }
   .reader code {
     font-family: var(--font-mono); font-size: 0.88em;
-    background: var(--code-bg); padding: 2px 6px; border-radius: 4px;
+    background: var(--bgColor-inset);
+    color: var(--fgColor-default);
+    padding: 2px 6px; border-radius: var(--radius-sm);
   }
   .reader pre {
-    background: var(--code-bg); padding: 16px; border-radius: 8px;
+    background: var(--bgColor-inset); padding: var(--space-md);
+    border-radius: var(--radius-md);
     overflow-x: auto; font-size: 14px; line-height: 1.5;
   }
   .reader pre code { background: transparent; padding: 0; font-size: inherit; }
@@ -458,75 +594,128 @@
   .reader li { margin: 0.3em 0; }
   .reader table {
     border-collapse: collapse; width: 100%; margin: 1.5em 0;
-    font-family: var(--font-sans); font-size: 14px;
+    font-family: var(--font-ui); font-size: 14px;
   }
   .reader th, .reader td {
-    border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top;
+    border: var(--borderWidth-thin) solid var(--borderColor-muted);
+    padding: var(--space-xs) var(--space-sm); text-align: left; vertical-align: top;
   }
-  .reader th { background: var(--hover); font-weight: 600; }
-  .reader tr:nth-child(even) td { background: var(--bg); }
-  .reader hr { border: 0; border-top: 1px solid var(--border); margin: 2.5em 0; }
-  .reader img { max-width: 100%; border-radius: 6px; }
+  .reader th { background: var(--bgColor-muted); font-weight: var(--ui-fontWeight-semibold); }
+  .reader tr:nth-child(even) td { background: var(--bgColor-muted); }
+  .reader hr { border: 0; border-top: var(--borderWidth-thin) solid var(--borderColor-muted); margin: 2.5em 0; }
+  .reader img { max-width: 100%; border-radius: var(--radius-md); }
 
-  /* Copy & Comment buttons */
+  /* Block controls (copy + comment) — §5.6 */
   .copyable { position: relative; }
   .copy-btn, .comment-btn {
     position: absolute; top: 0;
-    width: 24px; height: 24px; border-radius: 5px;
-    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    width: 28px; height: 28px; border-radius: var(--radius-md);
+    border: var(--borderWidth-thin) solid transparent;
+    background: transparent; color: var(--fgColor-muted);
     cursor: pointer; padding: 0;
     display: inline-flex; align-items: center; justify-content: center;
-    font-family: var(--font-sans); font-size: 11px; line-height: 1;
-    opacity: 0; transition: opacity 0.12s, color 0.12s, background 0.12s, transform 0.12s;
+    font-family: var(--font-ui); font-size: var(--ui-fontSize-sm); line-height: 1;
+    opacity: 0; pointer-events: none;
     user-select: none;
   }
-  .copy-btn svg, .comment-btn svg { width: 12px; height: 12px; }
-  .copyable:hover > .copy-btn, .copyable:hover > .comment-btn { opacity: 1; }
-  .copy-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
-  .copy-btn.copied { opacity: 1; color: #16a34a; border-color: #16a34a; background: rgba(22,163,74,0.08); }
-  
-  .comment-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
-  .comment-btn.has-comment { opacity: 1; color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .copy-btn svg, .comment-btn svg { width: 14px; height: 14px; }
+  /* Controls layer above the gutter hover-zone so they stay clickable. */
+  .copy-btn, .comment-btn { z-index: 1; }
+  /* Gutter hover-zone (§6): a transparent strip to the block's right, part of
+     the block itself. It lets the pointer travel from text to the controls
+     without dropping :hover. Because it lives on the BLOCK (not the buttons)
+     it never triggers a premature button-hover, and because the buttons sit
+     above it (z-index:1) there is no button-over-button overlap. */
+  .reader p.copyable::after,
+  .reader h1.copyable::after, .reader h2.copyable::after,
+  .reader h3.copyable::after, .reader h4.copyable::after,
+  .reader h5.copyable::after, .reader h6.copyable::after,
+  .reader li.copyable::after,
+  .reader blockquote.copyable::after {
+    content: '';
+    position: absolute;
+    top: 0; right: -78px; width: 78px; height: 100%;
+  }
+  .copyable:hover > .copy-btn,
+  .copyable:hover > .comment-btn,
+  .copyable:focus-within > .copy-btn,
+  .copyable:focus-within > .comment-btn {
+    opacity: 1; pointer-events: auto;
+  }
+  .copy-btn:hover, .comment-btn:hover {
+    color: var(--fgColor-default);
+    background: var(--bgColor-hover);
+  }
+  .copy-btn.copied { opacity: 1; pointer-events: auto; color: var(--fgColor-success); background: transparent; }
 
-  .copy-btn { right: -34px; }
-  .comment-btn { right: -62px; }
+  /* "Has comment" is meaningful state — always visible & tinted (§4) */
+  .comment-btn.has-comment {
+    opacity: 1; pointer-events: auto;
+    color: var(--fgColor-accent);
+    background: var(--bgColor-accent-muted);
+  }
 
-  /* Headings need a bit more top alignment since they have larger line-height */
+  @media (prefers-reduced-motion: no-preference) {
+    .copy-btn, .comment-btn {
+      transition: opacity var(--motion-fast) var(--easing-standard),
+                  color var(--motion-fast) var(--easing-standard),
+                  background var(--motion-fast) var(--easing-standard);
+    }
+  }
+
+  .copy-btn { right: -38px; }
+  .comment-btn { right: -72px; }
+
+  /* Headings: nudge to top-align */
   .reader h1 .copy-btn, .reader h1 .comment-btn,
   .reader h2 .copy-btn, .reader h2 .comment-btn { top: 6px; }
   .reader h3 .copy-btn, .reader h3 .comment-btn,
   .reader h4 .copy-btn, .reader h4 .comment-btn { top: 3px; }
-  
-  /* Tables: anchor relative to the table itself */
-  .reader table.copyable > .copy-btn { top: -28px; right: 28px; }
-  .reader table.copyable > .comment-btn { top: -28px; right: 0; }
-  
-  /* Code blocks: button inside the pre at top-right */
-  .reader pre.copyable > .copy-btn { top: 8px; right: 36px; background: var(--panel); }
-  .reader pre.copyable > .comment-btn { top: 8px; right: 8px; background: var(--panel); }
-  
-  @media (max-width: 1100px) {
-    .copy-btn { right: 32px; background: var(--panel); }
-    .comment-btn { right: 4px; background: var(--panel); }
-    .reader h1 .copy-btn, .reader h2 .copy-btn, .reader h3 .copy-btn, .reader h4 .copy-btn { right: 32px; }
-    .reader h1 .comment-btn, .reader h2 .comment-btn, .reader h3 .comment-btn, .reader h4 .comment-btn { right: 4px; }
-  }
 
-  /* Floating Comment Box */
+  /* Tables: anchor to the table itself */
+  .reader table.copyable > .copy-btn { top: -32px; right: 36px; }
+  .reader table.copyable > .comment-btn { top: -32px; right: 0; }
+
+  /* Code blocks: button inside the pre at top-right */
+  .reader pre.copyable > .copy-btn { top: var(--space-xs); right: 44px; background: var(--bgColor-default); }
+  .reader pre.copyable > .comment-btn { top: var(--space-xs); right: var(--space-xs); background: var(--bgColor-default); }
+
+  /* When the measured right gutter is too narrow to hold the gutter controls
+     without clipping (small window, wide sidebar, OR a stretched TOC pane), a
+     ResizeObserver adds .controls-inline and the controls move inside the
+     column over the text (no gutter to cross, so no hover-zone needed). */
+  .preview-container.controls-inline .copy-btn { right: 36px; background: var(--bgColor-default); }
+  .preview-container.controls-inline .comment-btn { right: var(--space-2xs); background: var(--bgColor-default); }
+  .preview-container.controls-inline .reader h1 .copy-btn,
+  .preview-container.controls-inline .reader h2 .copy-btn,
+  .preview-container.controls-inline .reader h3 .copy-btn,
+  .preview-container.controls-inline .reader h4 .copy-btn { right: 36px; }
+  .preview-container.controls-inline .reader h1 .comment-btn,
+  .preview-container.controls-inline .reader h2 .comment-btn,
+  .preview-container.controls-inline .reader h3 .comment-btn,
+  .preview-container.controls-inline .reader h4 .comment-btn { right: var(--space-2xs); }
+  .preview-container.controls-inline .copyable::after { content: none; }
+
+  /* Floating Comment Box — §5.8 */
   .floating-comment-box {
     position: absolute;
-    width: 260px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    padding: 12px;
-    z-index: 999;
+    width: 280px;
+    background: var(--bgColor-overlay);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-floating);
+    padding: var(--space-sm);
+    /* Invisible hover bridge so the pointer can cross from block to card */
+    padding-left: calc(var(--space-sm) + 12px);
+    margin-left: -12px;
+    z-index: var(--z-commentCard);
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    gap: var(--space-xs);
     pointer-events: auto;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .floating-comment-box { transition: opacity var(--motion-base) var(--easing-standard); }
   }
   .comment-box-header {
     display: flex;
@@ -534,27 +723,72 @@
     align-items: center;
   }
   .comment-box-title {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: var(--ui-fontSize-sm);
+    font-weight: var(--ui-fontWeight-semibold);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--muted);
+    color: var(--fgColor-muted);
   }
+  .comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .comment-entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+  }
+  .comment-entry + .comment-entry {
+    border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+    padding-top: var(--space-sm);
+  }
+  .comment-entry-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xs);
+  }
+  .comment-entry-prefix {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--ui-fontSize-sm);
+    font-style: italic;
+    color: var(--fgColor-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .comment-add-btn {
+    align-self: flex-start;
+    background: transparent;
+    border: none;
+    color: var(--fgColor-accent);
+    font-family: var(--font-ui);
+    font-size: var(--ui-fontSize-sm);
+    font-weight: var(--ui-fontWeight-medium);
+    cursor: pointer;
+    padding: var(--space-2xs) 0 0;
+  }
+  .comment-add-btn:hover { text-decoration: underline; }
   .comment-box-delete-btn {
     background: transparent;
     border: none;
-    color: var(--muted);
+    color: var(--fgColor-muted);
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
+    padding: var(--space-2xs);
+    border-radius: var(--radius-sm);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.12s ease;
+    transition: color var(--motion-fast) var(--easing-standard),
+                background var(--motion-fast) var(--easing-standard);
   }
   .comment-box-delete-btn:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.08);
+    color: var(--fgColor-danger);
+    background: var(--bgColor-hover);
   }
   .comment-box-delete-btn svg {
     width: 14px;
@@ -563,91 +797,77 @@
   }
   .comment-box-textarea {
     width: 100%;
-    height: 80px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px;
-    color: var(--text);
-    font-family: var(--font-sans);
-    font-size: 13px;
+    height: 72px;
+    background: var(--bgColor-inset);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--radius-sm);
+    padding: var(--space-xs);
+    color: var(--fgColor-default);
+    font-family: var(--font-ui);
+    font-size: var(--ui-fontSize-md);
     line-height: 1.4;
     resize: vertical;
     outline: none;
+    transition: border-color var(--motion-fast) var(--easing-standard);
   }
   .comment-box-textarea:focus {
-    border-color: var(--accent);
-  }
-  .comment-box-footer {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 4px;
-  }
-  .comment-box-save-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: filter 0.1s ease;
-  }
-  .comment-box-save-btn:hover {
-    filter: brightness(1.05);
+    border-color: var(--borderColor-focus);
+    box-shadow: 0 0 0 3px var(--bgColor-accent-muted);
   }
 
-  /* TOC */
+  /* TOC — §5.10 */
   .toc-wrap {
-    border-left: 1px solid var(--border);
-    padding: 48px 20px 48px 16px;
+    border-left: var(--borderWidth-thin) solid var(--borderColor-muted);
+    padding: var(--space-2xl) var(--space-md) var(--space-2xl) var(--space-md);
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--bg);
+    background: var(--bgColor-muted);
     position: relative;
   }
   .toc-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: var(--space-sm);
   }
   .toc-title {
-    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--muted);
+    font-size: var(--ui-fontSize-sm);
+    font-weight: var(--ui-fontWeight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fgColor-muted);
   }
   .toc-controls {
     display: flex;
-    gap: 6px;
+    gap: var(--space-2xs);
     align-items: center;
   }
   .toc-action-btn {
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--muted);
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
+    border: var(--borderWidth-thin) solid transparent;
+    background: transparent;
+    color: var(--fgColor-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-md);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    transition: all 0.12s ease;
+    transition: color var(--motion-fast) var(--easing-standard),
+                background var(--motion-fast) var(--easing-standard);
   }
   .toc-action-btn:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: var(--accent-soft);
+    color: var(--fgColor-default);
+    background: var(--bgColor-hover);
   }
   .toc-action-btn svg {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
   }
   .toc-list { list-style: none; padding: 0; margin: 0; }
-  .toc-sublist { list-style: none; padding-left: 12px; margin: 0; }
-  .toc-list li { margin: 4px 0; }
+  .toc-sublist { list-style: none; padding-left: var(--space-sm); margin: 0; }
+  .toc-list li { margin: var(--space-3xs) 0; }
   .toc-link-wrap {
     display: flex;
     align-items: flex-start;
@@ -657,28 +877,29 @@
   .toc-toggle {
     background: transparent;
     border: none;
-    color: var(--muted);
-    width: 16px;
-    height: 16px;
+    color: var(--fgColor-muted);
+    width: 18px;
+    height: 18px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     padding: 0;
-    margin-right: 4px;
-    margin-top: 4px;
-    border-radius: 3px;
+    margin-right: var(--space-3xs);
+    margin-top: 3px;
+    border-radius: var(--radius-sm);
     flex-shrink: 0;
-    transition: all 0.12s ease;
+    transition: color var(--motion-fast) var(--easing-standard),
+                background var(--motion-fast) var(--easing-standard);
   }
   .toc-toggle:hover {
-    color: var(--accent);
-    background: var(--hover);
+    color: var(--fgColor-default);
+    background: var(--bgColor-hover);
   }
   .toc-toggle svg {
-    width: 8px;
-    height: 8px;
-    transition: transform 0.15s ease;
+    width: 9px;
+    height: 9px;
+    transition: transform var(--motion-base) var(--easing-standard);
   }
   .toc-item.collapsed > .toc-toggle svg,
   .toc-item.collapsed > .toc-link-wrap > .toc-toggle svg {
@@ -688,30 +909,37 @@
     display: none;
   }
   .toc-toggle-spacer {
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
-    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+    margin-right: var(--space-3xs);
+    margin-top: 3px;
     flex-shrink: 0;
   }
   .toc-list a {
-    color: var(--muted); text-decoration: none; font-size: 12.5px; line-height: 1.5;
-    display: block; padding: 4px 8px; border-radius: 4px;
-    border-left: 2px solid transparent;
+    color: var(--fgColor-muted); text-decoration: none;
+    font-size: var(--ui-fontSize-sm); line-height: 1.5;
+    display: block; padding: var(--space-3xs) var(--space-xs);
+    border-radius: var(--radius-sm);
     flex: 1;
     min-width: 0;
     word-break: break-word;
+    transition: color var(--motion-fast) var(--easing-standard),
+                background var(--motion-fast) var(--easing-standard);
   }
-  .toc-list a:hover { color: var(--text); background: var(--hover); }
-  .toc-list a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+  .toc-list a:hover { color: var(--fgColor-default); background: var(--bgColor-hover); }
+  .toc-list a.active {
+    color: var(--fgColor-accent);
+    background: var(--bgColor-accent-muted);
+    font-weight: var(--ui-fontWeight-semibold);
+  }
 
 
   /* Drop overlay */
   .drop-overlay {
-    position: fixed; inset: 0; background: rgba(194, 65, 12, 0.08);
-    border: 3px dashed var(--accent); display: none;
-    align-items: center; justify-content: center; z-index: 1000;
-    font-size: 24px; font-weight: 700; color: var(--accent);
+    position: fixed; inset: 0; background: var(--bgColor-accent-muted);
+    border: 3px dashed var(--borderColor-accent); display: none;
+    align-items: center; justify-content: center; z-index: var(--z-menu);
+    font-size: 24px; font-weight: var(--ui-fontWeight-semibold); color: var(--fgColor-accent);
     pointer-events: none;
   }
   .drop-overlay.show { display: flex; }
@@ -719,50 +947,58 @@
   /* Empty reader */
   .reader-empty {
     height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 14px; color: var(--muted); padding: 40px;
+    gap: var(--space-sm); color: var(--fgColor-muted); padding: var(--space-2xl);
   }
-  .reader-empty .big { font-size: 22px; color: var(--text); font-weight: 600; }
-  .reader-empty .sub { font-size: 14px; max-width: 420px; text-align: center; line-height: 1.6; }
+  .reader-empty .big { font-size: 22px; color: var(--fgColor-default); font-weight: var(--ui-fontWeight-semibold); }
+  .reader-empty .sub { font-size: var(--ui-fontSize-lg); max-width: 420px; text-align: center; line-height: 1.6; }
   .reader-empty kbd {
-    background: var(--panel); border: 1px solid var(--border); border-bottom-width: 2px;
-    padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 12px;
+    background: var(--bgColor-inset);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-bottom-width: 2px;
+    padding: 2px var(--space-2xs); border-radius: var(--radius-sm);
+    font-family: var(--font-mono); font-size: var(--ui-fontSize-sm);
+    color: var(--fgColor-default);
   }
 
   /* Footer status */
   .status {
-    padding: 8px 16px; border-top: 1px solid var(--border);
-    font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px;
+    padding: var(--space-xs) var(--space-md);
+    border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+    font-size: var(--ui-fontSize-sm); color: var(--fgColor-muted);
+    display: flex; justify-content: space-between; gap: var(--space-xs);
   }
-  .status a { color: var(--muted); text-decoration: none; cursor: pointer; }
-  .status a:hover { color: var(--accent); }
+  .status a { color: var(--fgColor-muted); text-decoration: none; cursor: pointer; }
+  .status a:hover { color: var(--fgColor-accent); }
 
   @media (max-width: 1000px) {
     body { grid-template-columns: 240px 1fr; }
     .workspace-area { grid-template-columns: 1fr; }
     .toc-wrap { display: none; }
-    .preview-container { padding: 32px 32px 80px; }
+    .preview-container { padding: var(--space-xl) var(--space-xl) 80px; }
   }
 
 
-  /* Visual Edit Mode styling */
+  /* Visual Edit Mode — caret only, no chrome on the canvas (§5.5) */
   .reader[contenteditable="true"] {
     outline: none;
-    caret-color: var(--accent);
+    caret-color: var(--fgColor-accent);
     min-height: calc(100vh - 200px);
-    border: 1px dashed transparent;
-    padding: 12px;
-    border-radius: 8px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-  .reader[contenteditable="true"]:hover {
-    border-color: var(--border);
-  }
-  .reader[contenteditable="true"]:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-soft);
   }
   .reader[contenteditable="true"] *:focus {
     outline: none;
+  }
+
+  /* Restore-folder attention button (only shown when folder access lapsed) */
+  #restore-folder {
+    background: var(--bgColor-accent-muted) !important;
+    border: var(--borderWidth-thin) solid var(--borderColor-accent) !important;
+    color: var(--fgColor-accent) !important;
+    font-weight: var(--ui-fontWeight-semibold) !important;
+  }
+  #restore-folder:hover { filter: brightness(1.02); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
   }
 </style>
 </head>
@@ -785,7 +1021,7 @@
   <div class="controls">
     <button class="btn" id="open-folder">Open folder</button>
     <button class="btn btn-secondary" id="open-files">Open files…</button>
-    <button class="btn" id="restore-folder" style="display:none; background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight:600; border: 1px solid var(--accent);">Restore Folder Access</button>
+    <button class="btn" id="restore-folder" style="display:none;">Restore Folder Access</button>
   </div>
   <div class="search-wrap">
     <span class="search-icon">⌕</span>
@@ -808,7 +1044,7 @@
   <div class="doc-header" id="doc-header" style="display:none">
     <div class="doc-title-info">
       <span class="doc-name" id="doc-name"></span>
-      <span class="save-status-badge" id="save-status">Saved</span>
+      <span class="save-status-badge" id="save-status" aria-live="polite">Saved</span>
     </div>
     <div class="doc-actions">
       <button class="icon-btn-text btn-primary" id="save-file" title="Save changes (Ctrl+S)">
@@ -834,18 +1070,17 @@
         <button id="floating-search-btn" class="toolbar-btn" title="Search selection in Google" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </button>
+        <div class="toolbar-divider"></div>
+        <button id="floating-comment-btn" class="toolbar-btn" title="Comment on selection" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
       </div>
       <div id="floating-comment-box" class="floating-comment-box" style="display: none;">
         <div class="comment-box-header">
-          <span class="comment-box-title">Section Comment</span>
-          <button class="comment-box-delete-btn" title="Delete comment" type="button">
-            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-          </button>
+          <span class="comment-box-title">Comments</span>
         </div>
-        <textarea class="comment-box-textarea" placeholder="Add an inline comment..."></textarea>
-        <div class="comment-box-footer">
-          <button class="comment-box-save-btn" type="button">Save</button>
-        </div>
+        <div class="comment-list"></div>
+        <button class="comment-add-btn" type="button">+ Add a note</button>
       </div>
     </div>
     <nav class="toc-wrap" id="toc-wrap" style="display:none">
@@ -896,9 +1131,6 @@
   const saveAsFileBtn = document.getElementById('save-as-file');
 
   const commentBoxEl = document.getElementById('floating-comment-box');
-  const commentTextarea = commentBoxEl ? commentBoxEl.querySelector('.comment-box-textarea') : null;
-  const commentDeleteBtn = commentBoxEl ? commentBoxEl.querySelector('.comment-box-delete-btn') : null;
-  const commentSaveBtn = commentBoxEl ? commentBoxEl.querySelector('.comment-box-save-btn') : null;
 
   // ---------- Marked config ----------
   marked.setOptions({
@@ -917,13 +1149,13 @@
   // ---------- Theme ----------
   const themeBtn = document.getElementById('theme-toggle');
   function setTheme(t) {
-    document.documentElement.classList.toggle('dark', t === 'dark');
+    document.documentElement.setAttribute('data-theme', t);
     document.getElementById('hljs-light').disabled = (t === 'dark');
     document.getElementById('hljs-dark').disabled = (t !== 'dark');
     localStorage.setItem('md-editor-theme', t);
   }
   themeBtn.addEventListener('click', () => {
-    setTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
+    setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
   });
   setTheme(localStorage.getItem('md-editor-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
@@ -1262,8 +1494,11 @@
 
     for (const commentNode of commentNodes) {
       const text = commentNode.nodeValue || '';
-      const match = text.match(/^\s*(.*?)\s*:\s*([\s\S]*)$/);
+      // Split on the FIRST ": " (colon + whitespace) so colons inside the
+      // prefix (e.g. a highlighted phrase) don't shift the split.
+      const match = text.match(/^([\s\S]*?):\s([\s\S]*)$/);
       if (match) {
+        const commentPrefix = match[1].trim();
         const commentBody = match[2].trim();
         let targetEl = commentNode.previousElementSibling;
         
@@ -1301,7 +1536,10 @@
         }
 
         if (targetEl && targetEl !== root) {
-          targetEl.dataset.blockComment = commentBody;
+          // Append to the block's comment list (multiple comments per block).
+          const arr = getComments(targetEl);
+          arr.push({ prefix: commentPrefix, body: commentBody });
+          targetEl.dataset.comments = JSON.stringify(arr);
         }
       }
     }
@@ -1309,6 +1547,46 @@
     for (const node of commentNodes) {
       node.remove();
     }
+  }
+
+  // ---------- Comment data model (multiple {prefix, body} per block) ----------
+  function getComments(el) {
+    if (!el || !el.dataset || !el.dataset.comments) return [];
+    try {
+      const arr = JSON.parse(el.dataset.comments);
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  }
+  // Writes the list back to the block, pruning empty-body entries (they are
+  // never serialized). Toggles the block's comment-button "has-comment" tint.
+  function setComments(el, arr) {
+    const clean = (arr || []).filter(c => c && (c.body || '').trim() !== '');
+    if (clean.length) el.dataset.comments = JSON.stringify(clean);
+    else delete el.dataset.comments;
+    const btn = el.querySelector(':scope > .comment-btn');
+    if (btn) btn.classList.toggle('has-comment', clean.length > 0);
+  }
+  // The prefix is a label inside an HTML comment. It must not contain "-->"
+  // (would close the comment) nor ": " (the prefix/body delimiter).
+  function sanitizePrefix(text) {
+    const t = (text || '')
+      .replace(/-->/g, '→')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/:\s/g, ' ');
+    return t || 'Selection';
+  }
+  function sanitizeCommentBody(text) {
+    return (text || '').replace(/-->/g, '→');
+  }
+  function commentsToMarkdown(el) {
+    let out = '';
+    for (const c of getComments(el)) {
+      const body = (c.body || '').trim();
+      if (!body) continue;
+      out += `\n<!-- ${sanitizePrefix(c.prefix)}: ${sanitizeCommentBody(body)} -->`;
+    }
+    return out;
   }
 
   // ---------- Copy & Comment buttons ----------
@@ -1345,7 +1623,7 @@
 
       const commentBtn = document.createElement('button');
       commentBtn.className = 'comment-btn';
-      if (el.dataset.blockComment) {
+      if (getComments(el).length) {
         commentBtn.classList.add('has-comment');
       }
       commentBtn.type = 'button';
@@ -1354,7 +1632,7 @@
       commentBtn.innerHTML = COMMENT_ICON;
       commentBtn.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
-        showCommentBoxFor(el, true);
+        openCommentCard(el, { focus: true });
       });
       el.appendChild(commentBtn);
     });
@@ -1415,10 +1693,7 @@
         md = '- ' + ownText + nested;
       }
       
-      if (el.dataset && el.dataset.blockComment) {
-        const prefixText = getCommentPrefixForElement(el);
-        md += `\n<!-- ${prefixText}: ${el.dataset.blockComment} -->`;
-      }
+      md += commentsToMarkdown(el);
       return md;
     }
     else if (tag === 'ul' || tag === 'ol') {
@@ -1447,10 +1722,7 @@
     }
 
     if (tag !== 'li' && tag !== 'ul' && tag !== 'ol') {
-      if (el.dataset && el.dataset.blockComment) {
-        const prefixText = getCommentPrefixForElement(el);
-        md += `\n<!-- ${prefixText}: ${el.dataset.blockComment} -->`;
-      }
+      md += commentsToMarkdown(el);
     }
     return md;
   }
@@ -1594,16 +1866,18 @@
   const highlightToolbar = document.getElementById('highlight-toolbar');
   const floatingCopyBtn = document.getElementById('floating-copy-btn');
   const floatingSearchBtn = document.getElementById('floating-search-btn');
+  const floatingCommentBtn = document.getElementById('floating-comment-btn');
   let selectedTextCache = '';
 
   document.addEventListener('selectionchange', handleSelectionChange);
-  
+
   // Hide on scroll to prevent offset floating
   readerWrap.addEventListener('scroll', hideHighlightToolbar);
 
   // Prevent highlight blur on button mouse downs
   floatingCopyBtn.addEventListener('mousedown', (e) => e.preventDefault());
   floatingSearchBtn.addEventListener('mousedown', (e) => e.preventDefault());
+  floatingCommentBtn.addEventListener('mousedown', (e) => e.preventDefault());
 
   floatingCopyBtn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -1631,9 +1905,32 @@
     
     const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(selectedTextCache);
     window.open(searchUrl, '_blank', 'noopener,noreferrer');
-    
+
     window.getSelection().removeAllRanges();
     hideHighlightToolbar();
+  });
+
+  // Comment on the highlighted text: attach a new comment to the block that
+  // contains the selection, using the full selected text as the prefix.
+  floatingCommentBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const text = selectedTextCache;
+    if (!text) return;
+
+    const selection = window.getSelection();
+    let block = null;
+    if (selection.rangeCount) {
+      let node = selection.getRangeAt(0).startContainer;
+      if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+      block = node && node.closest ? node.closest('.copyable') : null;
+    }
+
+    window.getSelection().removeAllRanges();
+    hideHighlightToolbar();
+
+    if (!block) return;
+    openCommentCard(block, { addPrefix: text, focus: true });
   });
 
   function handleSelectionChange() {
@@ -1674,7 +1971,7 @@
     const rangeRect = range.getBoundingClientRect();
     const containerRect = readerWrap.getBoundingClientRect();
     
-    const buttonWidth = 69; // 28 * 2 buttons + divider spacing
+    const buttonWidth = 104; // 28 * 3 buttons + 2 dividers spacing
     const buttonHeight = 32;
     
     const left = rangeRect.left - containerRect.left + readerWrap.scrollLeft + (rangeRect.width / 2) - (buttonWidth / 2);
@@ -1699,37 +1996,121 @@
   }
 
   // ---------- Floating Comment Box Interaction ----------
-  let activeHoverElement = null;
+  let activeHoverElement = null;     // block whose comments the card is showing
+  let cardComments = [];             // working list for the open card
   let activeBlockHovered = false;
   let commentBoxHovered = false;
   let commentBoxFocused = false;
   let commentHideTimeout = null;
 
-  function showCommentBoxFor(block, focusTextarea = false) {
-    if (!block) return;
-    activeHoverElement = block;
+  const commentList = commentBoxEl ? commentBoxEl.querySelector('.comment-list') : null;
+  const commentAddBtn = commentBoxEl ? commentBoxEl.querySelector('.comment-add-btn') : null;
+  const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
 
-    const comment = block.dataset.blockComment || '';
-    commentTextarea.value = comment;
+  // Persist the working list to the block (prunes empties) + trigger autosave.
+  function persistCardComments() {
+    if (!activeHoverElement) return;
+    setComments(activeHoverElement, cardComments);
+    readerEl.dispatchEvent(new Event('input', { bubbles: true }));
+  }
 
+  // Build the card's entry rows from cardComments. Rebuilt on open/add/delete
+  // (never on every keystroke, so the caret/focus is preserved while typing).
+  function renderCommentCard() {
+    if (!commentList) return;
+    commentList.innerHTML = '';
+    cardComments.forEach((c, i) => {
+      const entry = document.createElement('div');
+      entry.className = 'comment-entry';
+
+      const head = document.createElement('div');
+      head.className = 'comment-entry-head';
+      const label = document.createElement('span');
+      label.className = 'comment-entry-prefix';
+      const full = c.prefix || 'Comment';
+      label.textContent = '“' + (full.length > 40 ? full.slice(0, 40) + '…' : full) + '”';
+      label.title = full;
+      const del = document.createElement('button');
+      del.className = 'comment-box-delete-btn';
+      del.type = 'button';
+      del.title = 'Delete comment';
+      del.innerHTML = TRASH_ICON;
+      del.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        cardComments.splice(i, 1);
+        persistCardComments();
+        if (cardComments.length === 0) closeCommentBox();
+        else renderCommentCard();
+      });
+      head.appendChild(label);
+      head.appendChild(del);
+
+      const ta = document.createElement('textarea');
+      ta.className = 'comment-box-textarea';
+      ta.value = c.body || '';
+      ta.placeholder = 'Add a comment…';
+      ta.addEventListener('input', () => {
+        cardComments[i].body = ta.value;
+        persistCardComments();
+      });
+      ta.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); closeCommentBox(); }
+      });
+
+      entry.appendChild(head);
+      entry.appendChild(ta);
+      commentList.appendChild(entry);
+    });
+  }
+
+  function positionCommentCard(block) {
     const rect = block.getBoundingClientRect();
     const containerRect = readerWrap.getBoundingClientRect();
-
-    const boxWidth = 260;
+    const boxWidth = 280;
     let left = rect.right - containerRect.left + readerWrap.scrollLeft + 12;
     const maxLeft = containerRect.width - boxWidth - 16 + readerWrap.scrollLeft;
-    if (left > maxLeft) {
-      left = maxLeft;
-    }
-
-    let top = rect.top - containerRect.top + readerWrap.scrollTop;
-
+    if (left > maxLeft) left = maxLeft;
+    const top = rect.top - containerRect.top + readerWrap.scrollTop;
     commentBoxEl.style.left = left + 'px';
     commentBoxEl.style.top = top + 'px';
-    commentBoxEl.style.display = 'flex';
+  }
 
-    if (focusTextarea) {
-      setTimeout(() => commentTextarea.focus(), 10);
+  // opts: { addPrefix } adds a new entry with that prefix (highlight comment);
+  //       { focus } whether to focus a textarea (false for hover preview).
+  function openCommentCard(block, opts = {}) {
+    if (!block || !commentBoxEl) return;
+    const { addPrefix = null, focus = true } = opts;
+    activeHoverElement = block;
+    cardComments = getComments(block);
+    let focusIndex = -1;
+    if (addPrefix !== null) {
+      cardComments.push({ prefix: sanitizePrefix(addPrefix), body: '' });
+      focusIndex = cardComments.length - 1;
+    } else if (cardComments.length === 0) {
+      // Opening an empty block via its gutter button → start a block note.
+      cardComments.push({ prefix: sanitizePrefix(getCommentPrefixForElement(block)), body: '' });
+      focusIndex = cardComments.length - 1;
+    }
+    renderCommentCard();
+    positionCommentCard(block);
+    commentBoxEl.style.display = 'flex';
+    if (focus) {
+      setTimeout(() => {
+        const tas = commentBoxEl.querySelectorAll('.comment-box-textarea');
+        const ta = focusIndex >= 0 ? tas[focusIndex] : tas[0];
+        if (ta) ta.focus();
+      }, 10);
+    }
+  }
+
+  function closeCommentBox() {
+    if (!commentBoxEl) return;
+    commentBoxEl.style.display = 'none';
+    commentBoxFocused = false;
+    commentBoxHovered = false;
+    activeBlockHovered = false;
+    if (document.activeElement && commentBoxEl.contains(document.activeElement)) {
+      document.activeElement.blur();
     }
   }
 
@@ -1738,24 +2119,36 @@
     commentHideTimeout = setTimeout(() => {
       if (!activeBlockHovered && !commentBoxHovered && !commentBoxFocused) {
         commentBoxEl.style.display = 'none';
-        activeHoverElement = null; // Clear active reference only when comment card actually hides
+        activeHoverElement = null; // Clear active reference only when card actually hides
       }
     }, 200);
   }
 
-  // Hovering on blocks
+  // "+ Add a note" — appends a block-level comment (prefix = block snippet).
+  if (commentAddBtn) {
+    commentAddBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!activeHoverElement) return;
+      cardComments.push({ prefix: sanitizePrefix(getCommentPrefixForElement(activeHoverElement)), body: '' });
+      renderCommentCard();
+      const tas = commentBoxEl.querySelectorAll('.comment-box-textarea');
+      const last = tas[tas.length - 1];
+      if (last) last.focus();
+    });
+  }
+
+  // Hovering a block with existing comments previews the card (no focus steal).
   readerEl.addEventListener('mouseover', (e) => {
-    if (commentBoxFocused) return; // Keep locked to currently focused block while editing
-    
+    if (commentBoxFocused) return; // stay locked to the block being edited
     const block = e.target.closest('.copyable');
     if (block) {
       clearTimeout(commentHideTimeout);
       activeBlockHovered = true;
       if (activeHoverElement !== block) {
-        activeHoverElement = block;
-        if (block.dataset.blockComment) {
-          showCommentBoxFor(block);
+        if (getComments(block).length) {
+          openCommentCard(block, { focus: false });
         } else {
+          activeHoverElement = block;
           commentBoxEl.style.display = 'none';
         }
       }
@@ -1763,8 +2156,7 @@
   });
 
   readerEl.addEventListener('mouseout', (e) => {
-    if (commentBoxFocused) return; // Keep locked to currently focused block while editing
-    
+    if (commentBoxFocused) return;
     const block = e.target.closest('.copyable');
     if (block && activeHoverElement === block) {
       activeBlockHovered = false;
@@ -1772,94 +2164,24 @@
     }
   });
 
-  // Comment box hover
   commentBoxEl.addEventListener('mouseenter', () => {
     commentBoxHovered = true;
     clearTimeout(commentHideTimeout);
   });
-
   commentBoxEl.addEventListener('mouseleave', () => {
     commentBoxHovered = false;
     checkHideCommentBox();
   });
 
-  // Comment box textarea focus
-  commentTextarea.addEventListener('focus', () => {
+  // Focus anywhere inside the card keeps it open (satisfies keyboard use).
+  commentBoxEl.addEventListener('focusin', () => {
     commentBoxFocused = true;
     clearTimeout(commentHideTimeout);
   });
-
-  commentTextarea.addEventListener('blur', () => {
+  commentBoxEl.addEventListener('focusout', (e) => {
+    if (commentBoxEl.contains(e.relatedTarget)) return;
     commentBoxFocused = false;
     checkHideCommentBox();
-  });
-
-  // Textarea input
-  commentTextarea.addEventListener('input', () => {
-    if (!activeHoverElement) return;
-    const val = commentTextarea.value.trim();
-    const commentBtn = activeHoverElement.querySelector('.comment-btn');
-
-    if (val) {
-      activeHoverElement.dataset.blockComment = val;
-      if (commentBtn) commentBtn.classList.add('has-comment');
-    } else {
-      delete activeHoverElement.dataset.blockComment;
-      if (commentBtn) commentBtn.classList.remove('has-comment');
-    }
-
-    // Trigger editor input event to update draft and autosave
-    readerEl.dispatchEvent(new Event('input', { bubbles: true }));
-  });
-
-  // Delete comment
-  commentDeleteBtn.addEventListener('click', (e) => {
-    e.preventDefault(); e.stopPropagation();
-    if (!activeHoverElement) return;
-
-    commentTextarea.value = '';
-    delete activeHoverElement.dataset.blockComment;
-    
-    const commentBtn = activeHoverElement.querySelector('.comment-btn');
-    if (commentBtn) commentBtn.classList.remove('has-comment');
-
-    commentBoxEl.style.display = 'none';
-    commentBoxFocused = false;
-
-    // Trigger editor input event to update and autosave
-    readerEl.dispatchEvent(new Event('input', { bubbles: true }));
-  });
-
-  // Save comment and close box
-  if (commentSaveBtn) {
-    commentSaveBtn.addEventListener('click', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      commentBoxEl.style.display = 'none';
-      commentBoxFocused = false;
-      commentTextarea.blur();
-      if (activeHoverElement) {
-        const val = commentTextarea.value.trim();
-        const commentBtn = activeHoverElement.querySelector('.comment-btn');
-        if (val) {
-          activeHoverElement.dataset.blockComment = val;
-          if (commentBtn) commentBtn.classList.add('has-comment');
-        } else {
-          delete activeHoverElement.dataset.blockComment;
-          if (commentBtn) commentBtn.classList.remove('has-comment');
-        }
-        readerEl.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-    });
-  }
-
-  // Support Ctrl/Cmd + Enter key shortcut to save comment
-  commentTextarea.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      if (commentSaveBtn) {
-        commentSaveBtn.click();
-      }
-    }
   });
 
   // ---------- Helpers ----------
@@ -2095,6 +2417,28 @@
       saveCurrentFile();
       return;
     }
+    // Esc dismisses hover-revealed surfaces (WCAG 2.1 SC 1.4.13)
+    if (e.key === 'Escape') {
+      let dismissed = false;
+      if (highlightToolbar && highlightToolbar.classList.contains('show')) {
+        hideHighlightToolbar();
+        window.getSelection().removeAllRanges();
+        dismissed = true;
+      }
+      if (commentBoxEl && commentBoxEl.style.display !== 'none') {
+        const restoreEl = activeHoverElement;
+        commentBoxEl.style.display = 'none';
+        commentBoxFocused = false;
+        commentBoxHovered = false;
+        activeBlockHovered = false;
+        if (restoreEl) {
+          const btn = restoreEl.querySelector('.comment-btn');
+          if (btn) btn.focus();
+        }
+        dismissed = true;
+      }
+      if (dismissed) { e.preventDefault(); return; }
+    }
     if (e.target.isContentEditable || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === 'j') { if (state.activeIndex < state.files.length - 1) showFile(state.activeIndex + 1); }
     else if (e.key === 'k') { if (state.activeIndex > 0) showFile(state.activeIndex - 1); }
@@ -2156,9 +2500,31 @@
     document.documentElement.style.setProperty('--toc-width', savedTocWidth);
   }
 
+  // ---------- Gutter controls: inline vs. gutter based on measured space ----------
+  // Switches block controls to inline mode whenever the actual space to the
+  // right of the reader (which shrinks with a wider sidebar OR a stretched TOC
+  // pane, independent of viewport width) is too small to hold them.
+  const READER_MAX_WIDTH = 720;
+  const GUTTER_CONTROLS_MIN = 80; // comment button right edge (~72) + margin
+  function updateControlsMode() {
+    const cs = getComputedStyle(readerWrap);
+    const padL = parseFloat(cs.paddingLeft) || 0;
+    const padR = parseFloat(cs.paddingRight) || 0;
+    const contentWidth = readerWrap.clientWidth - padL - padR;
+    const readerWidth = Math.min(READER_MAX_WIDTH, contentWidth);
+    const gutter = (contentWidth - readerWidth) / 2 + padR;
+    readerWrap.classList.toggle('controls-inline', gutter < GUTTER_CONTROLS_MIN);
+  }
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(updateControlsMode).observe(readerWrap);
+  } else {
+    window.addEventListener('resize', updateControlsMode);
+  }
+  updateControlsMode();
+
   // ---------- Init ----------
   restore();
-  
+
   // Set up IndexedDB restore and listener for folder restore button
   document.getElementById('restore-folder').addEventListener('click', reattachDirectoryHandles);
   initHandlesRestore();
