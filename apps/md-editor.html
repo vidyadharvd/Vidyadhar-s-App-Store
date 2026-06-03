@@ -1180,7 +1180,7 @@
   <div class="workspace-area">
     <div class="preview-container" id="preview-container">
       <div class="reader-empty" id="reader-empty">
-        <img src="../assets/md-file-reader.png" alt="Drop in your markdown" onerror="this.onerror=null; if(window.location.pathname.startsWith('/lab')) { this.src='/lab/assets/md-file-reader.png'; } else { this.src='/assets/md-file-reader.png'; }" />
+        <img src="../assets/md-file-reader.png" alt="Drop in your markdown" onerror="this.onerror=null; if(window.location.hostname.includes('vidyadharpatil.com')) { this.src='/lab/assets/md-file-reader.png'; } else if(window.location.pathname.startsWith('/lab')) { this.src='/lab/assets/md-file-reader.png'; } else { this.src='/assets/md-file-reader.png'; }" />
         <div class="big">Drop in your markdown</div>
         <div class="sub">Click <strong>Open folder</strong> to load every <code>.md</code> in a directory, drop files anywhere on this window, or use <kbd>j</kbd>/<kbd>k</kbd> to move between files once loaded.</div>
       </div>
