@@ -1055,6 +1055,12 @@
     height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: var(--space-sm); color: var(--fgColor-muted); padding: var(--space-2xl);
   }
+  .reader-empty img {
+    max-width: 260px;
+    height: auto;
+    margin-bottom: var(--space-xs);
+    opacity: 0.85;
+  }
   .reader-empty .big { font-size: 22px; color: var(--fgColor-default); font-weight: var(--ui-fontWeight-semibold); }
   .reader-empty .sub { font-size: var(--ui-fontSize-lg); max-width: 420px; text-align: center; line-height: 1.6; }
   .reader-empty kbd {
@@ -1164,6 +1170,7 @@
   <div class="workspace-area">
     <div class="preview-container" id="preview-container">
       <div class="reader-empty" id="reader-empty">
+        <img src="../assets/md-file-reader.png" alt="Drop in your markdown" />
         <div class="big">Drop in your markdown</div>
         <div class="sub">Click <strong>Open folder</strong> to load every <code>.md</code> in a directory, drop files anywhere on this window, or use <kbd>j</kbd>/<kbd>k</kbd> to move between files once loaded.</div>
       </div>
