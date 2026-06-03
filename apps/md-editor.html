@@ -13,6 +13,10 @@
   })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="posthog-project-token" content="phc_x9yGaqKBTQXoJahL26L9i7pGTR4EkUJrdAotfad2AWU8" />
+<meta name="posthog-api-host" content="https://us.i.posthog.com" />
+<meta name="analytics-app-namespace" content="vidyadhar_app_store" />
+<meta name="analytics-event-prefix" content="vappstore_" />
 <title>MD Editor</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -1124,7 +1128,7 @@
   }
 </style>
 </head>
-<body>
+<body data-analytics-surface="md_editor">
 
 <aside>
   <div class="brand">
@@ -1226,6 +1230,7 @@
 
 <div class="drop-overlay" id="drop-overlay">Drop markdown files to load</div>
 
+<script src="../analytics.js"></script>
 <script>
   // ---------- State ----------
   const state = {
@@ -1233,10 +1238,13 @@
     activeIndex: -1,
     query: '',
     directoryHandle: null,
+    sourceType: null,
   };
 
   let debounceTimer;
   let autosaveTimer;
+  let searchAnalyticsTimer;
+  let editedFilePositions = new Set();
 
   const fileListEl = document.getElementById('file-list');
   const readerEl = document.getElementById('reader');
@@ -1254,6 +1262,59 @@
   const saveAsFileBtn = document.getElementById('save-as-file');
 
   const commentBoxEl = document.getElementById('floating-comment-box');
+
+  function track(eventName, properties = {}) {
+    window.AppAnalytics?.capture(eventName, properties);
+  }
+
+  function markdownStats(content) {
+    const text = content || '';
+    return {
+      char_count: text.length,
+      line_count: text ? text.split(/\r?\n/).length : 0,
+      heading_count: (text.match(/^#{1,6}\s+/gm) || []).length,
+      comment_count: (text.match(/<!--\s*comment\b/g) || []).length,
+    };
+  }
+
+  function currentFileAnalytics(extra = {}) {
+    const file = state.files[state.activeIndex];
+    const draft = file ? (file.draftContent ?? file.content ?? '') : '';
+    const isDirty = file ? file.draftContent !== undefined && file.draftContent !== file.content : false;
+    return {
+      source_type: state.sourceType,
+      total_file_count: state.files.length,
+      active_file_position: state.activeIndex >= 0 ? state.activeIndex + 1 : null,
+      file_has_handle: Boolean(file && file.handle),
+      file_dirty: isDirty,
+      ...markdownStats(draft),
+      ...extra,
+    };
+  }
+
+  function trackEditorSearch(resultCount) {
+    clearTimeout(searchAnalyticsTimer);
+    searchAnalyticsTimer = setTimeout(() => {
+      const queryLength = state.query.trim().length;
+      if (!queryLength) return;
+      track('md_search_performed', {
+        query_length: queryLength,
+        result_count: resultCount,
+        total_file_count: state.files.length,
+        source_type: state.sourceType,
+      });
+    }, 700);
+  }
+
+  function blockTypeName(el) {
+    return el ? el.tagName.toLowerCase() : 'unknown';
+  }
+
+  window.AppAnalytics?.page({ page_name: 'MD Editor' });
+  track('md_editor_viewed', {
+    has_cached_files: Boolean(localStorage.getItem('md-editor-cache')),
+    initial_theme: localStorage.getItem('md-editor-theme') || 'system',
+  });
 
   // ---------- Marked config ----------
   marked.setOptions({
@@ -1278,7 +1339,9 @@
     localStorage.setItem('md-editor-theme', t);
   }
   themeBtn.addEventListener('click', () => {
-    setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    setTheme(theme);
+    track('md_theme_changed', { theme });
   });
   setTheme(localStorage.getItem('md-editor-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
@@ -1293,18 +1356,32 @@
     zoomResetBtn.textContent = Math.round(z * 100) + '%';
     localStorage.setItem('md-editor-zoom-idx', zoomIdx);
   }
+  function changeZoom(action, nextIdx) {
+    const previousZoom = ZOOM_STEPS[zoomIdx];
+    zoomIdx = nextIdx;
+    applyZoom();
+    track('md_zoom_changed', {
+      action,
+      previous_zoom: previousZoom,
+      zoom: ZOOM_STEPS[zoomIdx],
+    });
+  }
   document.getElementById('zoom-in').addEventListener('click', () => {
-    if (zoomIdx < ZOOM_STEPS.length - 1) { zoomIdx++; applyZoom(); }
+    if (zoomIdx < ZOOM_STEPS.length - 1) changeZoom('in', zoomIdx + 1);
   });
   document.getElementById('zoom-out').addEventListener('click', () => {
-    if (zoomIdx > 0) { zoomIdx--; applyZoom(); }
+    if (zoomIdx > 0) changeZoom('out', zoomIdx - 1);
   });
-  zoomResetBtn.addEventListener('click', () => { zoomIdx = 2; applyZoom(); });
+  zoomResetBtn.addEventListener('click', () => { changeZoom('reset', 2); });
   applyZoom();
 
   // ---------- File loading ----------
   document.getElementById('open-folder').addEventListener('click', async () => {
     if (!('showDirectoryPicker' in window)) {
+      track('md_files_load_failed', {
+        source_type: 'folder',
+        reason: 'directory_picker_unsupported',
+      });
       alert('Your browser does not support directory picking. Try the "Open files…" button or drag-and-drop instead. (Chrome/Edge/Arc support this.)');
       return;
     }
@@ -1317,8 +1394,15 @@
       
       const files = [];
       await walkDir(dir, '', files);
-      if (files.length === 0) { alert('No .md files found in this folder.'); return; }
-      setFiles(files);
+      if (files.length === 0) {
+        track('md_files_load_failed', {
+          source_type: 'folder',
+          reason: 'no_markdown_files',
+        });
+        alert('No .md files found in this folder.');
+        return;
+      }
+      setFiles(files, 'folder');
     } catch (e) { /* user cancelled */ }
   });
 
@@ -1358,7 +1442,7 @@
           const file = await handle.getFile();
           arr.push({ name: file.name, path: file.name, content: await file.text(), handle });
         }
-        if (arr.length) setFiles(arr);
+        if (arr.length) setFiles(arr, 'file_picker');
       } catch (e) { /* user cancelled */ }
     } else {
       const input = document.createElement('input');
@@ -1371,7 +1455,7 @@
           if (!/\.(md|markdown)$/i.test(f.name)) continue;
           arr.push({ name: f.name, path: f.webkitRelativePath || f.name, content: await f.text() });
         }
-        if (arr.length) setFiles(arr);
+        if (arr.length) setFiles(arr, 'file_input');
       };
       input.click();
     }
@@ -1396,7 +1480,7 @@
         if (/\.(md|markdown)$/i.test(f.name)) arr.push({ name: f.name, path: f.name, content: await f.text() });
       }
     }
-    if (arr.length) setFiles(arr);
+    if (arr.length) setFiles(arr, 'drag_drop');
   });
 
   async function walkEntry(entry, prefix, out) {
@@ -1434,15 +1518,26 @@
       if (!raw) return;
       const arr = JSON.parse(raw);
       if (Array.isArray(arr) && arr.length) {
+        state.sourceType = 'cache';
         state.files = arr;
         renderFileList();
-        if (arr.length) showFile(0);
+        if (arr.length) showFile(0, 'cache_restore');
         fileCountEl.textContent = arr.length + ' file' + (arr.length !== 1 ? 's' : '');
+        track('md_files_restored', {
+          source_type: 'cache',
+          file_count: arr.length,
+          ...markdownStats(arr.map(f => f.draftContent ?? f.content ?? '').join('\n')),
+        });
       }
     } catch {}
   }
 
   document.getElementById('clear-all').addEventListener('click', async () => {
+    track('md_files_cleared', {
+      source_type: state.sourceType,
+      file_count: state.files.length,
+      had_active_file: state.activeIndex !== -1,
+    });
     state.files = []; state.activeIndex = -1; state.query = ''; searchEl.value = '';
     localStorage.removeItem('md-editor-cache');
     await clearStoredHandles();
@@ -1458,18 +1553,27 @@
     }
     activeHoverElement = null;
     orphanedComments = [];
+    editedFilePositions = new Set();
     const orphanPanel = document.getElementById('orphaned-comments');
     if (orphanPanel) orphanPanel.remove();
   });
 
-  function setFiles(arr) {
+  function setFiles(arr, sourceType = 'unknown') {
     arr.sort((a, b) => a.path.localeCompare(b.path));
     state.files = arr;
     state.activeIndex = -1;
+    state.sourceType = sourceType;
+    editedFilePositions = new Set();
     renderFileList();
     persist();
     fileCountEl.textContent = arr.length + ' file' + (arr.length !== 1 ? 's' : '');
-    if (arr.length) showFile(0);
+    track('md_files_loaded', {
+      source_type: sourceType,
+      file_count: arr.length,
+      files_with_handles: arr.filter(f => f.handle).length,
+      ...markdownStats(arr.map(f => f.draftContent ?? f.content ?? '').join('\n')),
+    });
+    if (arr.length) showFile(0, 'load_initial');
   }
 
   // ---------- Sidebar ----------
@@ -1477,7 +1581,7 @@
     const q = state.query.trim().toLowerCase();
     if (!state.files.length) {
       fileListEl.innerHTML = '<div class="empty"><strong>No files loaded</strong>Click <em>Open folder</em> to load a directory of <code>.md</code> files, or drag &amp; drop them here.</div>';
-      return;
+      return 0;
     }
     const filtered = state.files
       .map((f, i) => ({ f, i }))
@@ -1485,7 +1589,7 @@
 
     if (!filtered.length) {
       fileListEl.innerHTML = '<div class="empty">No matches.</div>';
-      return;
+      return 0;
     }
     fileListEl.innerHTML = '';
     for (const { f, i } of filtered) {
@@ -1499,21 +1603,25 @@
       
       el.innerHTML = `<div class="file-item-header"><span class="file-item-title">${escapeHtml(title)}</span>${dotHtml}</div>${showPath}`;
       el.title = f.path; // Show full path on hover tooltip
-      el.addEventListener('click', () => showFile(i));
+      el.addEventListener('click', () => showFile(i, 'sidebar_click'));
       fileListEl.appendChild(el);
     }
+    return filtered.length;
   }
 
   function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // ---------- Renderer ----------
-  async function showFile(i) {
+  async function showFile(i, navigationMethod = 'unknown') {
     if (i < 0 || i >= state.files.length) return;
+    const previousIndex = state.activeIndex;
+    let switchedFromDirty = false;
     
     // Check if current file has unsaved changes
     if (state.activeIndex !== -1 && state.activeIndex !== i) {
       const currentFile = state.files[state.activeIndex];
       const isDirty = currentFile.draftContent !== undefined && currentFile.draftContent !== currentFile.content;
+      switchedFromDirty = isDirty;
       if (isDirty) {
         const confirmLeave = confirm(`"${currentFile.name}" has unsaved changes. Do you want to save them before switching files?`);
         if (confirmLeave) {
@@ -1551,6 +1659,11 @@
     // Update active state in sidebar
     renderFileList();
     document.title = f.name.replace(/\.md$/i,'') + ' — MD Editor';
+    track('md_file_selected', currentFileAnalytics({
+      navigation_method: navigationMethod,
+      previous_file_position: previousIndex >= 0 ? previousIndex + 1 : null,
+      switched_from_dirty: switchedFromDirty,
+    }));
   }
 
   function renderPreview(content) {
@@ -1794,6 +1907,10 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
         e.preventDefault(); e.stopPropagation();
         const md = elementToMarkdown(el);
         navigator.clipboard.writeText(md).then(() => {
+          track('md_block_copied', currentFileAnalytics({
+            block_type: blockTypeName(el),
+            copied_char_count: md.length,
+          }));
           copyBtn.innerHTML = CHECK_ICON;
           copyBtn.classList.add('copied');
           setTimeout(() => {
@@ -1816,6 +1933,11 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
       commentBtn.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
         openCommentCard(el, { focus: true });
+        track('md_comment_card_opened', currentFileAnalytics({
+          source: 'block_button',
+          block_type: blockTypeName(el),
+          existing_comment_count: getComments(el).length,
+        }));
       });
       el.appendChild(commentBtn);
     });
@@ -1967,6 +2089,10 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
       a.addEventListener('click', e => {
         e.preventDefault();
         h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        track('md_toc_heading_clicked', currentFileAnalytics({
+          heading_level: level,
+          heading_position: idx + 1,
+        }));
       });
 
       linkWrap.appendChild(a);
@@ -2037,12 +2163,18 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
     tocEl.querySelectorAll('li.has-children').forEach(li => {
       li.classList.remove('collapsed');
     });
+    track('md_toc_expanded_all', currentFileAnalytics({
+      branch_count: tocEl.querySelectorAll('li.has-children').length,
+    }));
   });
 
   document.getElementById('toc-collapse-all').addEventListener('click', () => {
     tocEl.querySelectorAll('li.has-children').forEach(li => {
       li.classList.add('collapsed');
     });
+    track('md_toc_collapsed_all', currentFileAnalytics({
+      branch_count: tocEl.querySelectorAll('li.has-children').length,
+    }));
   });
 
   // ---------- Selection Highlight Floating Toolbar ----------
@@ -2068,6 +2200,9 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
     if (!selectedTextCache) return;
     
     navigator.clipboard.writeText(selectedTextCache).then(() => {
+      track('md_selection_copied', currentFileAnalytics({
+        selected_char_count: selectedTextCache.length,
+      }));
       floatingCopyBtn.innerHTML = CHECK_ICON;
       floatingCopyBtn.classList.add('copied');
       setTimeout(() => {
@@ -2088,6 +2223,9 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
     
     const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(selectedTextCache);
     window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    track('md_selection_google_searched', currentFileAnalytics({
+      selected_char_count: selectedTextCache.length,
+    }));
 
     window.getSelection().removeAllRanges();
     hideHighlightToolbar();
@@ -2114,6 +2252,10 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
 
     if (!block) return;
     openCommentCard(block, { addAnchor: text, focus: true });
+    track('md_selection_comment_started', currentFileAnalytics({
+      selected_char_count: text.length,
+      block_type: blockTypeName(block),
+    }));
   });
 
   function handleSelectionChange() {
@@ -2244,8 +2386,14 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
       del.innerHTML = TRASH_ICON;
       del.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
+        const deletedType = cardComments[i]?.type || 'unknown';
         cardComments.splice(i, 1);
         persistCardComments();
+        track('md_comment_deleted', currentFileAnalytics({
+          source: 'comment_card',
+          comment_type: deletedType,
+          remaining_comment_count: cardComments.length,
+        }));
         if (cardComments.length === 0) closeCommentBox();
         else renderCommentCard();
       });
@@ -2269,11 +2417,16 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
         btn.setAttribute('aria-pressed', active ? 'true' : 'false');
         btn.addEventListener('click', (e) => {
           e.preventDefault();
+          const previousType = cardComments[i].type;
           cardComments[i].type = t;
           // Choosing a live type clears a resolved marker.
           delete cardComments[i].resolvedBy;
           delete cardComments[i].resolvedTs;
           persistCardComments();
+          track('md_comment_type_changed', currentFileAnalytics({
+            previous_type: previousType,
+            comment_type: t,
+          }));
           renderCommentCard();
         });
         selector.appendChild(btn);
@@ -2383,8 +2536,14 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
       del.title = 'Delete orphaned comment';
       del.innerHTML = TRASH_ICON;
       del.addEventListener('click', () => {
+        const deletedType = orphanedComments[i]?.type || 'unknown';
         orphanedComments.splice(i, 1);
         readerEl.dispatchEvent(new Event('input', { bubbles: true }));
+        track('md_comment_deleted', currentFileAnalytics({
+          source: 'orphaned_panel',
+          comment_type: deletedType,
+          remaining_orphaned_comment_count: orphanedComments.length,
+        }));
         renderOrphanedComments();
       });
       row.appendChild(info);
@@ -2416,10 +2575,20 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
     if (addAnchor !== null) {
       cardComments.push(makeComment(addAnchor));
       focusIndex = cardComments.length - 1;
+      track('md_comment_created', currentFileAnalytics({
+        source: 'selection',
+        block_type: blockTypeName(block),
+        comment_count: cardComments.length,
+      }));
     } else if (cardComments.length === 0) {
       // Opening an empty block via its gutter button → start a block note.
       cardComments.push(makeComment(getCommentPrefixForElement(block)));
       focusIndex = cardComments.length - 1;
+      track('md_comment_created', currentFileAnalytics({
+        source: 'block_button',
+        block_type: blockTypeName(block),
+        comment_count: cardComments.length,
+      }));
     }
     renderCommentCard();
     positionCommentCard(block);
@@ -2461,6 +2630,11 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
       if (!activeHoverElement) return;
       cardComments.push(makeComment(getCommentPrefixForElement(activeHoverElement)));
       renderCommentCard();
+      track('md_comment_created', currentFileAnalytics({
+        source: 'comment_card_add_button',
+        block_type: blockTypeName(activeHoverElement),
+        comment_count: cardComments.length,
+      }));
       const tas = commentBoxEl.querySelectorAll('.comment-box-textarea');
       const last = tas[tas.length - 1];
       if (last) last.focus();
@@ -2542,6 +2716,7 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
   readerEl.addEventListener('input', () => {
     if (state.activeIndex === -1) return;
     const currentFile = state.files[state.activeIndex];
+    const activePosition = state.activeIndex + 1;
     
     // Set isAutosaved to false since we just made new modifications
     currentFile.isAutosaved = false;
@@ -2549,6 +2724,12 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
     // Convert current editable DOM back to markdown
     const newMarkdown = readerToMarkdown();
     currentFile.draftContent = newMarkdown;
+    if (!editedFilePositions.has(activePosition)) {
+      editedFilePositions.add(activePosition);
+      track('md_document_edited', currentFileAnalytics({
+        edit_counted_once_per_file: true,
+      }));
+    }
     
     // Update dirty indicator (will show "Saving draft...")
     updateSaveStatusBadge();
@@ -2566,6 +2747,7 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
       persist();
       currentFile.isAutosaved = true;
       updateSaveStatusBadge();
+      track('md_draft_autosaved', currentFileAnalytics());
     }, 500);
   });
 
@@ -2665,6 +2847,10 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
       try {
         const hasPermission = await verifyPermission(file.handle, true);
         if (!hasPermission) {
+          track('md_file_save_failed', currentFileAnalytics({
+            save_method: 'direct',
+            error_name: 'PermissionDenied',
+          }));
           alert('Write permission was denied.');
           return false;
         }
@@ -2676,9 +2862,16 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
         updateSaveStatusBadge();
         renderFileList();
         persist();
+        track('md_file_saved', currentFileAnalytics({
+          save_method: 'direct',
+        }));
         return true;
       } catch (e) {
         console.error('Failed to save directly:', e);
+        track('md_file_save_failed', currentFileAnalytics({
+          save_method: 'direct',
+          error_name: e.name || 'Error',
+        }));
         alert('Direct save failed. Please choose a location to save your changes.');
         return await saveCurrentFileAs();
       }
@@ -2704,8 +2897,14 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
       renderFileList();
       persist();
       await saveHandlesToIndexedDB();
+      track('md_file_saved', currentFileAnalytics({
+        save_method: 'save_as',
+      }));
       return true;
     }
+    track('md_file_save_cancelled', currentFileAnalytics({
+      save_method: 'save_as',
+    }));
     return false;
   }
 
@@ -2731,7 +2930,8 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
   // ---------- Search ----------
   searchEl.addEventListener('input', e => {
     state.query = e.target.value;
-    renderFileList();
+    const resultCount = renderFileList();
+    trackEditorSearch(resultCount);
   });
 
   // ---------- Keyboard nav ----------
@@ -2739,16 +2939,16 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
     // Zoom shortcuts (work even when focused in inputs)
     if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
       e.preventDefault();
-      if (zoomIdx < ZOOM_STEPS.length - 1) { zoomIdx++; applyZoom(); }
+      if (zoomIdx < ZOOM_STEPS.length - 1) changeZoom('keyboard_in', zoomIdx + 1);
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key === '-') {
       e.preventDefault();
-      if (zoomIdx > 0) { zoomIdx--; applyZoom(); }
+      if (zoomIdx > 0) changeZoom('keyboard_out', zoomIdx - 1);
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key === '0') {
-      e.preventDefault(); zoomIdx = 2; applyZoom(); return;
+      e.preventDefault(); changeZoom('keyboard_reset', 2); return;
     }
     // Save shortcut: Ctrl/Cmd + S
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -2779,9 +2979,16 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
       if (dismissed) { e.preventDefault(); return; }
     }
     if (e.target.isContentEditable || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === 'j') { if (state.activeIndex < state.files.length - 1) showFile(state.activeIndex + 1); }
-    else if (e.key === 'k') { if (state.activeIndex > 0) showFile(state.activeIndex - 1); }
-    else if (e.key === '/') { e.preventDefault(); searchEl.focus(); }
+    if (e.key === 'j') { if (state.activeIndex < state.files.length - 1) showFile(state.activeIndex + 1, 'keyboard_next'); }
+    else if (e.key === 'k') { if (state.activeIndex > 0) showFile(state.activeIndex - 1, 'keyboard_previous'); }
+    else if (e.key === '/') {
+      e.preventDefault();
+      searchEl.focus();
+      track('md_search_focused', {
+        source: 'keyboard_shortcut',
+        total_file_count: state.files.length,
+      });
+    }
   });
 
   // ---------- Resizing Rails ----------
@@ -2807,7 +3014,12 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
     document.removeEventListener('mousemove', resizeLeft);
     document.removeEventListener('mouseup', stopResizeLeft);
     leftResizer.classList.remove('active');
-    localStorage.setItem('md-editor-sidebar-width', document.documentElement.style.getPropertyValue('--sidebar-width'));
+    const width = document.documentElement.style.getPropertyValue('--sidebar-width');
+    localStorage.setItem('md-editor-sidebar-width', width);
+    track('md_sidebar_resized', {
+      width,
+      total_file_count: state.files.length,
+    });
   }
 
   function initResizeRight(e) {
@@ -2826,7 +3038,9 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
     document.removeEventListener('mousemove', resizeRight);
     document.removeEventListener('mouseup', stopResizeRight);
     rightResizer.classList.remove('active');
-    localStorage.setItem('md-editor-toc-width', document.documentElement.style.getPropertyValue('--toc-width'));
+    const width = document.documentElement.style.getPropertyValue('--toc-width');
+    localStorage.setItem('md-editor-toc-width', width);
+    track('md_toc_resized', currentFileAnalytics({ width }));
   }
 
   // Restore sidebar/TOC widths from localStorage on load
@@ -2963,15 +3177,23 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
     if (!state.directoryHandle) return false;
     try {
       const hasPermission = await verifyDirectoryPermission(state.directoryHandle);
-      if (!hasPermission) return false;
+      if (!hasPermission) {
+        track('md_folder_access_restore_failed', {
+          reason: 'permission_denied',
+          total_file_count: state.files.length,
+        });
+        return false;
+      }
       
       const fileHandlesMap = new Map();
       await walkDirForHandles(state.directoryHandle, '', fileHandlesMap);
+      let restoredHandleCount = 0;
       
       for (const f of state.files) {
         const handle = fileHandlesMap.get(f.path);
         if (handle) {
           f.handle = handle;
+          restoredHandleCount++;
           const diskContent = await readFileContent(handle);
           if (diskContent !== null) {
             const isDirty = f.draftContent !== undefined && f.draftContent !== f.content;
@@ -2993,9 +3215,17 @@ Never change a comment's "type" except to "resolved" after an edit. Never delete
           renderPreview(activeFile.draftContent);
         }
       }
+      track('md_folder_access_restored', {
+        total_file_count: state.files.length,
+        restored_handle_count: restoredHandleCount,
+      });
       return true;
     } catch (e) {
       console.error('Failed to reattach directory handles:', e);
+      track('md_folder_access_restore_failed', {
+        reason: e.name || 'Error',
+        total_file_count: state.files.length,
+      });
       return false;
     }
   }

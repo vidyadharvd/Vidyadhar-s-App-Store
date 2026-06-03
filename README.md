@@ -29,6 +29,20 @@ Edit `apps.json` — that's the only file you need to touch.
 
 Required: `name`, `url`. Everything else is optional. If `image` is missing or fails to load, the card falls back to `assets/placeholder.svg`. Tag chips appear automatically based on whatever tags are present in the file.
 
+## Analytics
+
+PostHog tracking is implemented through `analytics.js`. To enable it, add your PostHog project token to the `posthog-project-token` meta tag in `index.html` and `apps/md-editor.html`.
+
+Custom events are automatically prefixed with `vappstore_`, and every event includes `app_namespace: "vidyadhar_app_store"`. This keeps the events separable when sharing one PostHog project with another website. PostHog's built-in events, such as `$pageview`, keep their original names and should be filtered by `app_namespace`, `app_surface`, domain, or path in insights.
+
+Tracked events are intentionally privacy-light. The app store tracks catalog load, search length/result counts, tag filters, and app opens. MD Editor tracks file-load source/counts, file selection, save/autosave, theme/zoom changes, search length/result counts, copy/search/comment actions, TOC usage, and panel resizing. It does not send markdown content, file names, file paths, search queries, selected text, or comment bodies.
+
+Localhost capture is disabled by default. To debug events locally, run this in the browser console:
+
+```js
+localStorage.setItem("analytics-debug", "true");
+```
+
 ## Deploy to Vercel
 
 Two paths — pick whichever fits your workflow.

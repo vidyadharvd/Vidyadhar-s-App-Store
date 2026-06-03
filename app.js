@@ -21,6 +21,52 @@ const els = {
   tagFilter: document.getElementById("tag-filter"),
 };
 
+let searchAnalyticsTimer;
+
+function track(eventName, properties = {}) {
+  window.AppAnalytics?.capture(eventName, properties);
+}
+
+function appDestination(appUrl) {
+  const url = new URL(appUrl, window.location.href);
+  return {
+    destination_type: url.origin === window.location.origin ? "internal" : "external",
+    destination_origin: url.origin,
+    destination_path: url.origin === window.location.origin ? url.pathname : undefined,
+  };
+}
+
+function appCountByTag(tag) {
+  return state.apps.filter((app) => !tag || app.tag === tag).length;
+}
+
+function getFilteredApps() {
+  const q = state.search.trim().toLowerCase();
+  return state.apps.filter((app) => {
+    if (state.tag && app.tag !== state.tag) return false;
+    if (q) {
+      const haystack = `${app.name} ${app.description || ""}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function trackSearchChanged(filteredCount) {
+  clearTimeout(searchAnalyticsTimer);
+  searchAnalyticsTimer = setTimeout(() => {
+    const queryLength = state.search.trim().length;
+    if (!queryLength) return;
+
+    track("app_search_performed", {
+      query_length: queryLength,
+      active_tag: state.tag,
+      result_count: filteredCount,
+      total_app_count: state.apps.length,
+    });
+  }, 700);
+}
+
 // ------------------------------------------------------------------
 // Data loading
 // ------------------------------------------------------------------
@@ -44,9 +90,17 @@ async function loadApps() {
     state.apps = data.filter((entry) => entry && entry.name && entry.url);
 
     renderTags();
-    applyFilters();
+    const filtered = applyFilters();
+    track("apps_catalog_loaded", {
+      app_count: state.apps.length,
+      rendered_app_count: filtered.length,
+      tag_count: new Set(state.apps.map((a) => a.tag).filter(Boolean)).size,
+    });
   } catch (err) {
     showError(err.message);
+    track("apps_catalog_load_failed", {
+      error_message: err.message,
+    });
   }
 }
 
@@ -59,16 +113,9 @@ async function loadApps() {
  * Search + active tag combine with AND logic.
  */
 function applyFilters() {
-  const q = state.search.trim().toLowerCase();
-  const filtered = state.apps.filter((app) => {
-    if (state.tag && app.tag !== state.tag) return false;
-    if (q) {
-      const haystack = `${app.name} ${app.description || ""}`.toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
-    return true;
-  });
+  const filtered = getFilteredApps();
   renderApps(filtered);
+  return filtered;
 }
 
 // ------------------------------------------------------------------
@@ -103,7 +150,8 @@ function renderTags() {
  * Toggle the active tag. Clicking the active tag clears the filter.
  */
 function toggleTag(tag) {
-  state.tag = state.tag === tag ? null : tag;
+  const wasActive = state.tag === tag;
+  state.tag = wasActive ? null : tag;
 
   // Sync aria-pressed on every chip without rebuilding the DOM (avoids flicker).
   for (const chip of els.tagFilter.querySelectorAll(".tag-chip")) {
@@ -113,7 +161,14 @@ function toggleTag(tag) {
     );
   }
 
-  applyFilters();
+  const filtered = applyFilters();
+  track("app_tag_filter_toggled", {
+    tag,
+    action: wasActive ? "cleared" : "selected",
+    result_count: filtered.length,
+    tag_app_count: appCountByTag(tag),
+    search_active: Boolean(state.search.trim()),
+  });
 }
 
 // ------------------------------------------------------------------
@@ -159,6 +214,15 @@ function buildCard(app) {
     card.target = "_blank";
     card.rel = "noopener noreferrer";
   }
+  card.addEventListener("click", () => {
+    track("app_opened", {
+      app_name: app.name,
+      app_tag: app.tag || null,
+      search_active: Boolean(state.search.trim()),
+      active_tag: state.tag,
+      ...appDestination(app.url),
+    });
+  });
 
   // Icon — fall back to placeholder if no image or if the image fails to load.
   const iconWrap = document.createElement("span");
@@ -202,7 +266,13 @@ function showError(message) {
 // ------------------------------------------------------------------
 els.search.addEventListener("input", (event) => {
   state.search = event.target.value;
-  applyFilters();
+  const filtered = applyFilters();
+  trackSearchChanged(filtered.length);
+});
+
+window.AppAnalytics?.page({ page_name: "App Store" });
+track("app_store_viewed", {
+  initial_search_active: Boolean(state.search.trim()),
 });
 
 loadApps();
