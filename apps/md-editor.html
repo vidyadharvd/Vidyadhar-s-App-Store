@@ -773,6 +773,112 @@
     padding: var(--space-2xs) 0 0;
   }
   .comment-add-btn:hover { text-decoration: underline; }
+  .comment-entry-glyph {
+    flex-shrink: 0;
+    font-size: var(--ui-fontSize-sm);
+    color: var(--fgColor-muted);
+    width: 14px;
+    text-align: center;
+  }
+  /* Type selector (Ask / Reply / Edit) */
+  .comment-type-selector {
+    display: flex;
+    gap: var(--space-2xs);
+  }
+  .comment-type-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3xs);
+    padding: var(--space-3xs) var(--space-2xs);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--radius-sm);
+    background: var(--bgColor-default);
+    color: var(--fgColor-muted);
+    font-family: var(--font-ui);
+    font-size: var(--ui-fontSize-sm);
+    cursor: pointer;
+    transition: background var(--motion-fast) var(--easing-standard),
+                color var(--motion-fast) var(--easing-standard),
+                border-color var(--motion-fast) var(--easing-standard);
+  }
+  .comment-type-btn:hover { background: var(--bgColor-hover); color: var(--fgColor-default); }
+  .comment-type-btn[aria-pressed="true"] {
+    background: var(--bgColor-accent-muted);
+    color: var(--fgColor-accent);
+    border-color: var(--borderColor-accent);
+    font-weight: var(--ui-fontWeight-medium);
+  }
+  /* Resolved comments are dimmed */
+  .comment-entry.resolved { opacity: 0.6; }
+  .comment-entry.resolved .comment-entry-glyph { color: var(--fgColor-success); }
+  /* Agent replies (read-only) */
+  .comment-entry-replies {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+    margin-left: var(--space-sm);
+    padding-left: var(--space-xs);
+    border-left: 2px solid var(--borderColor-muted);
+  }
+  .comment-reply-meta {
+    font-size: var(--ui-fontSize-sm);
+    color: var(--fgColor-subtle);
+    font-weight: var(--ui-fontWeight-medium);
+  }
+  .comment-reply-text {
+    font-size: var(--ui-fontSize-md);
+    color: var(--fgColor-default);
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+  .comment-show-resolved {
+    background: transparent;
+    border: none;
+    color: var(--fgColor-accent);
+    font-family: var(--font-ui);
+    font-size: var(--ui-fontSize-sm);
+    cursor: pointer;
+    padding: 0;
+  }
+  .comment-show-resolved:hover { text-decoration: underline; }
+  /* Orphaned comments panel */
+  #orphaned-comments {
+    max-width: var(--reader-maxWidth);
+    margin: 0 auto var(--space-lg);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-left: 3px solid var(--fgColor-attention);
+    border-radius: var(--radius-md);
+    background: var(--bgColor-muted);
+    padding: var(--space-sm) var(--space-md);
+    font-family: var(--font-ui);
+  }
+  .orphaned-header {
+    font-size: var(--ui-fontSize-sm);
+    font-weight: var(--ui-fontWeight-semibold);
+    color: var(--fgColor-attention);
+    margin-bottom: var(--space-xs);
+  }
+  .orphaned-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-xs);
+    padding: var(--space-2xs) 0;
+  }
+  .orphaned-row + .orphaned-row { border-top: var(--borderWidth-thin) solid var(--borderColor-muted); }
+  .orphaned-info { display: flex; align-items: flex-start; gap: var(--space-xs); min-width: 0; }
+  .orphaned-anchor {
+    font-size: var(--ui-fontSize-sm);
+    font-style: italic;
+    color: var(--fgColor-muted);
+  }
+  .orphaned-body {
+    font-size: var(--ui-fontSize-md);
+    color: var(--fgColor-default);
+    line-height: 1.4;
+  }
   .comment-box-delete-btn {
     background: transparent;
     border: none;
@@ -1334,6 +1440,9 @@
       commentBoxFocused = false;
     }
     activeHoverElement = null;
+    orphanedComments = [];
+    const orphanPanel = document.getElementById('orphaned-comments');
+    if (orphanPanel) orphanPanel.remove();
   });
 
   function setFiles(arr) {
@@ -1434,12 +1543,11 @@
     }
     activeHoverElement = null;
 
-    const html = marked.parse(content);
-    readerEl.innerHTML = html;
-    
-    // Extract comments from DOM comments nodes and store in datasets
-    extractCommentsFromDOM(readerEl);
-    
+    // Pull typed comment blocks (and the agent contract) out of the RAW
+    // markdown before rendering, so their bodies never render as paragraphs.
+    const { cleaned, comments } = parseTypedComments(content);
+    readerEl.innerHTML = marked.parse(stripAgentContract(cleaned));
+
     // Show reader, hide empty
     readerEl.style.display = 'block';
     readerEmptyEl.style.display = 'none';
@@ -1451,8 +1559,12 @@
       }
     });
 
-    // Inject copy and comment buttons
+    // Inject copy and comment buttons (marks blocks .copyable)
     addCopyAndCommentButtons();
+
+    // Re-attach comments to blocks by anchor; surface any that no longer match
+    associateCommentsByAnchor(comments);
+    renderOrphanedComments();
 
     // Build TOC
     buildToc();
@@ -1462,94 +1574,69 @@
   }
 
   // ---------- Comments helpers ----------
+  // Returns a real substring of the block's text for use as a comment anchor.
+  // Must NOT add an ellipsis — the anchor is used for substring relocation on
+  // reload, so it has to literally appear in the block's text.
   function getCommentPrefixForElement(el) {
     const clone = el.cloneNode(true);
     clone.querySelectorAll('.copy-btn, .comment-btn, ul, ol').forEach(n => n.remove());
-    let text = clone.textContent.trim().replace(/\s+/g, ' ');
+    const text = clone.textContent.trim().replace(/\s+/g, ' ');
     if (!text) {
       const tag = el.tagName.toLowerCase();
-      if (tag === 'pre') text = 'Code block';
-      else if (tag === 'table') text = 'Table';
-      else if (tag === 'img') text = 'Image';
-      else text = 'Block';
+      if (tag === 'pre') return 'Code block';
+      if (tag === 'table') return 'Table';
+      if (tag === 'img') return 'Image';
+      return 'Block';
     }
-    if (text.length <= 12) {
-      return text;
-    }
-    return text.substring(0, 12) + '...';
+    return text.length <= 40 ? text : text.slice(0, 40);
   }
 
-  function extractCommentsFromDOM(root) {
-    const commentNodes = [];
-    function walk(node) {
-      if (node.nodeType === Node.COMMENT_NODE) {
-        commentNodes.push(node);
-      } else {
-        for (let i = 0; i < node.childNodes.length; i++) {
-          walk(node.childNodes[i]);
-        }
-      }
-    }
-    walk(root);
+  // ===================================================================
+  // Typed comment system
+  // A comment: { id, type, author, anchor, ts, body,
+  //              replies:[{author,ts,text}], resolvedBy?, resolvedTs? }
+  // type ∈ ask | reply | edit | resolved  (ask is default & non-destructive)
+  // Serialized as an HTML-comment block so an agent can act on it:
+  //   <!-- comment id="c1" type="ask" author="me" anchor="…" ts="…" -->
+  //   body
+  //     <!-- reply author="agent" ts="…" --> reply text <!-- /reply -->
+  //   <!-- /comment -->
+  // ===================================================================
+  const COMMENT_TYPES = ['ask', 'reply', 'edit', 'resolved'];
+  let commentIdCounter = 0;
+  let orphanedComments = []; // comments whose anchor no longer matches any block
 
-    for (const commentNode of commentNodes) {
-      const text = commentNode.nodeValue || '';
-      // Split on the FIRST ": " (colon + whitespace) so colons inside the
-      // prefix (e.g. a highlighted phrase) don't shift the split.
-      const match = text.match(/^([\s\S]*?):\s([\s\S]*)$/);
-      if (match) {
-        const commentPrefix = match[1].trim();
-        const commentBody = match[2].trim();
-        let targetEl = commentNode.previousElementSibling;
-        
-        if (!targetEl) {
-          targetEl = commentNode.parentElement;
-        }
-
-        while (targetEl && (
-          targetEl.classList.contains('copy-btn') || 
-          targetEl.classList.contains('comment-btn') ||
-          targetEl.id === 'highlight-toolbar'
-        )) {
-          targetEl = targetEl.previousElementSibling;
-        }
-
-        let candidate = targetEl;
-        while (candidate) {
-          const tag = candidate.tagName.toLowerCase();
-          if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'blockquote', 'pre', 'table'].includes(tag)) {
-            targetEl = candidate;
-            break;
-          }
-          if (tag === 'ul' || tag === 'ol') {
-            const lastLi = candidate.querySelector('li:last-child');
-            if (lastLi) {
-              targetEl = lastLi;
-              break;
-            }
-          }
-          if (candidate === root) {
-            candidate = null;
-          } else {
-            candidate = candidate.previousElementSibling || candidate.parentElement;
-          }
-        }
-
-        if (targetEl && targetEl !== root) {
-          // Append to the block's comment list (multiple comments per block).
-          const arr = getComments(targetEl);
-          arr.push({ prefix: commentPrefix, body: commentBody });
-          targetEl.dataset.comments = JSON.stringify(arr);
-        }
-      }
-    }
-
-    for (const node of commentNodes) {
-      node.remove();
+  function nextCommentId() { return 'c' + (++commentIdCounter); }
+  function seedCommentIds(comments) {
+    for (const c of comments) {
+      const m = /^c(\d+)$/.exec(c.id || '');
+      if (m) commentIdCounter = Math.max(commentIdCounter, parseInt(m[1], 10));
     }
   }
+  function getCommentAuthor() { return localStorage.getItem('md-editor-author') || 'me'; }
+  function makeComment(anchor) {
+    return {
+      id: nextCommentId(),
+      type: 'ask',
+      author: getCommentAuthor(),
+      anchor: (anchor || '').replace(/\s+/g, ' ').trim(),
+      ts: new Date().toISOString(),
+      body: '',
+      replies: []
+    };
+  }
+  // A comment is "empty" (not worth serializing) only if it has no body, no
+  // replies, and isn't a resolved marker.
+  function commentIsEmpty(c) {
+    return !(c && ((c.body && c.body.trim()) || (c.replies && c.replies.length) || c.type === 'resolved'));
+  }
 
-  // ---------- Comment data model (multiple {prefix, body} per block) ----------
+  // --- escaping so values survive inside an HTML comment ---
+  function escAttr(s) { return (s || '').replace(/-->/g, '→').replace(/\r?\n/g, ' ').replace(/"/g, '&quot;').trim(); }
+  function unescAttr(s) { return (s || '').replace(/&quot;/g, '"'); }
+  function escText(s) { return (s || '').replace(/<!--\s*\/?(?:comment|reply)[^>]*-->/g, '').replace(/-->/g, '→'); }
+
+  // --- per-block in-memory list (JSON in dataset; markdown is source of truth) ---
   function getComments(el) {
     if (!el || !el.dataset || !el.dataset.comments) return [];
     try {
@@ -1557,36 +1644,115 @@
       return Array.isArray(arr) ? arr : [];
     } catch { return []; }
   }
-  // Writes the list back to the block, pruning empty-body entries (they are
-  // never serialized). Toggles the block's comment-button "has-comment" tint.
   function setComments(el, arr) {
-    const clean = (arr || []).filter(c => c && (c.body || '').trim() !== '');
+    const clean = (arr || []).filter(c => !commentIsEmpty(c));
     if (clean.length) el.dataset.comments = JSON.stringify(clean);
     else delete el.dataset.comments;
     const btn = el.querySelector(':scope > .comment-btn');
     if (btn) btn.classList.toggle('has-comment', clean.length > 0);
   }
-  // The prefix is a label inside an HTML comment. It must not contain "-->"
-  // (would close the comment) nor ": " (the prefix/body delimiter).
-  function sanitizePrefix(text) {
-    const t = (text || '')
-      .replace(/-->/g, '→')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .replace(/:\s/g, ' ');
-    return t || 'Selection';
+
+  // --- parse: pull every comment block out of the RAW markdown (must happen
+  //     before marked.parse, or the body would render as a paragraph) ---
+  const COMMENT_RE = /<!-- comment ([^>]+?) -->([\s\S]*?)<!-- \/comment -->/g;
+  const REPLY_RE   = /<!-- reply ([^>]+?) -->([\s\S]*?)<!-- \/reply -->/g;
+  const ATTR_RE    = /([\w-]+)="([^"]*)"/g;
+  function parseAttrs(str) {
+    const out = {};
+    let m;
+    ATTR_RE.lastIndex = 0;
+    while ((m = ATTR_RE.exec(str))) out[m[1]] = unescAttr(m[2]);
+    return out;
   }
-  function sanitizeCommentBody(text) {
-    return (text || '').replace(/-->/g, '→');
+  function parseTypedComments(rawMd) {
+    const comments = [];
+    COMMENT_RE.lastIndex = 0;
+    const cleaned = rawMd.replace(COMMENT_RE, (full, attrStr, inner) => {
+      const a = parseAttrs(attrStr);
+      const replies = [];
+      REPLY_RE.lastIndex = 0;
+      const body = inner.replace(REPLY_RE, (rf, rAttr, rText) => {
+        const ra = parseAttrs(rAttr);
+        replies.push({ author: ra.author || 'agent', ts: ra.ts || '', text: rText.trim() });
+        return '';
+      }).trim();
+      let type = (a.type || 'ask').toLowerCase();
+      if (!COMMENT_TYPES.includes(type)) type = 'ask';
+      comments.push({
+        id: a.id || '', type, author: a.author || 'me',
+        anchor: a.anchor || '', ts: a.ts || '', body, replies,
+        resolvedBy: a['resolved-by'], resolvedTs: a['resolved-ts']
+      });
+      return '';
+    });
+    seedCommentIds(comments);
+    for (const c of comments) if (!c.id) c.id = nextCommentId();
+    return { cleaned, comments };
+  }
+
+  // --- associate parsed comments to rendered blocks by anchor substring ---
+  function associateCommentsByAnchor(comments) {
+    orphanedComments = [];
+    const blocks = Array.from(readerEl.querySelectorAll('.copyable'));
+    for (const c of comments) {
+      let target = null;
+      const needle = (c.anchor || '').trim().toLowerCase();
+      if (needle) target = blocks.find(b => b.textContent.toLowerCase().includes(needle)) || null;
+      if (target) {
+        const arr = getComments(target);
+        arr.push(c);
+        setComments(target, arr);
+      } else {
+        orphanedComments.push(c);
+      }
+    }
+  }
+
+  // --- serialize ---
+  function serializeComment(c) {
+    const attrs = [
+      `id="${escAttr(c.id)}"`,
+      `type="${escAttr(c.type || 'ask')}"`,
+      `author="${escAttr(c.author || 'me')}"`,
+      `anchor="${escAttr(c.anchor || '')}"`,
+      `ts="${escAttr(c.ts || '')}"`
+    ];
+    if (c.type === 'resolved') {
+      if (c.resolvedBy) attrs.push(`resolved-by="${escAttr(c.resolvedBy)}"`);
+      if (c.resolvedTs) attrs.push(`resolved-ts="${escAttr(c.resolvedTs)}"`);
+    }
+    let out = `<!-- comment ${attrs.join(' ')} -->\n${escText(c.body || '')}`;
+    for (const r of (c.replies || [])) {
+      out += `\n  <!-- reply author="${escAttr(r.author || 'agent')}" ts="${escAttr(r.ts || '')}" -->\n  ${escText(r.text || '')}\n  <!-- /reply -->`;
+    }
+    out += `\n<!-- /comment -->`;
+    return out;
   }
   function commentsToMarkdown(el) {
     let out = '';
     for (const c of getComments(el)) {
-      const body = (c.body || '').trim();
-      if (!body) continue;
-      out += `\n<!-- ${sanitizePrefix(c.prefix)}: ${sanitizeCommentBody(body)} -->`;
+      if (commentIsEmpty(c)) continue;
+      out += '\n' + serializeComment(c);
     }
     return out;
+  }
+
+  // --- agent contract: prepended once per file, stripped on load. Contains no
+  //     literal "-->" so it stays a single valid HTML comment. ---
+  const AGENT_CONTRACT = `<!-- AGENT-CONTRACT
+Comments in this file carry a "type" attribute. Follow it strictly.
+- type="ask"      Answer in chat only. Do NOT edit the document. Do NOT modify the comment.
+- type="reply"    Append a nested reply block (an HTML comment named "reply", authored
+                  "agent", with a "ts" attribute) inside that comment. Do NOT edit the
+                  document body. Do NOT change "type".
+- type="edit"     Edit the document to address the comment, then change the comment's
+                  "type" to "resolved" and add "resolved-by" and "resolved-ts" attributes.
+                  Preserve the original comment body.
+- type="resolved" Ignore. Already handled.
+Never change a comment's "type" except to "resolved" after an edit. Never delete a comment.
+-->`;
+  function stripAgentContract(md) {
+    return md.replace(/<!-- AGENT-CONTRACT[\s\S]*?-->\s*/, '');
   }
 
   // ---------- Copy & Comment buttons ----------
@@ -1911,7 +2077,7 @@
   });
 
   // Comment on the highlighted text: attach a new comment to the block that
-  // contains the selection, using the full selected text as the prefix.
+  // contains the selection, using the full selected text as the anchor.
   floatingCommentBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1930,7 +2096,7 @@
     hideHighlightToolbar();
 
     if (!block) return;
-    openCommentCard(block, { addPrefix: text, focus: true });
+    openCommentCard(block, { addAnchor: text, focus: true });
   });
 
   function handleSelectionChange() {
@@ -1998,6 +2164,7 @@
   // ---------- Floating Comment Box Interaction ----------
   let activeHoverElement = null;     // block whose comments the card is showing
   let cardComments = [];             // working list for the open card
+  let showResolved = false;          // card toggle: reveal resolved comments
   let activeBlockHovered = false;
   let commentBoxHovered = false;
   let commentBoxFocused = false;
@@ -2006,6 +2173,19 @@
   const commentList = commentBoxEl ? commentBoxEl.querySelector('.comment-list') : null;
   const commentAddBtn = commentBoxEl ? commentBoxEl.querySelector('.comment-add-btn') : null;
   const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+  // Type metadata: glyph + label + tooltip (mirrors the spec's selector).
+  const COMMENT_TYPE_META = {
+    ask:      { glyph: '?', label: 'Ask',   tip: 'Agent will reply in chat only' },
+    reply:    { glyph: '↳', label: 'Reply', tip: 'Agent will reply inside this comment' },
+    edit:     { glyph: '✎', label: 'Edit',  tip: 'Agent will edit the document to resolve this' },
+    resolved: { glyph: '✓', label: 'Resolved', tip: 'Resolved by the agent' }
+  };
+  function relTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (isNaN(d)) return '';
+    return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
 
   // Persist the working list to the block (prunes empties) + trigger autosave.
   function persistCardComments() {
@@ -2014,20 +2194,30 @@
     readerEl.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  // Build the card's entry rows from cardComments. Rebuilt on open/add/delete
-  // (never on every keystroke, so the caret/focus is preserved while typing).
+  // Build the card's entry rows from cardComments. Rebuilt on open/add/delete/
+  // type-change (never on body keystroke, so the caret/focus is preserved).
   function renderCommentCard() {
     if (!commentList) return;
     commentList.innerHTML = '';
-    cardComments.forEach((c, i) => {
-      const entry = document.createElement('div');
-      entry.className = 'comment-entry';
 
+    const resolvedCount = cardComments.filter(c => c.type === 'resolved').length;
+
+    cardComments.forEach((c, i) => {
+      if (c.type === 'resolved' && !showResolved) return;
+
+      const entry = document.createElement('div');
+      entry.className = 'comment-entry' + (c.type === 'resolved' ? ' resolved' : '');
+
+      // --- head: type glyph + anchor label + delete ---
       const head = document.createElement('div');
       head.className = 'comment-entry-head';
+      const glyph = document.createElement('span');
+      glyph.className = 'comment-entry-glyph';
+      glyph.textContent = (COMMENT_TYPE_META[c.type] || COMMENT_TYPE_META.ask).glyph;
+      glyph.title = (COMMENT_TYPE_META[c.type] || COMMENT_TYPE_META.ask).label;
       const label = document.createElement('span');
       label.className = 'comment-entry-prefix';
-      const full = c.prefix || 'Comment';
+      const full = c.anchor || 'Comment';
       label.textContent = '“' + (full.length > 40 ? full.slice(0, 40) + '…' : full) + '”';
       label.title = full;
       const del = document.createElement('button');
@@ -2042,9 +2232,38 @@
         if (cardComments.length === 0) closeCommentBox();
         else renderCommentCard();
       });
+      head.appendChild(glyph);
       head.appendChild(label);
       head.appendChild(del);
+      entry.appendChild(head);
 
+      // --- type selector (Ask / Reply / Edit) ---
+      const selector = document.createElement('div');
+      selector.className = 'comment-type-selector';
+      selector.setAttribute('role', 'radiogroup');
+      ['ask', 'reply', 'edit'].forEach(t => {
+        const meta = COMMENT_TYPE_META[t];
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'comment-type-btn';
+        btn.title = meta.tip;
+        btn.textContent = meta.glyph + ' ' + meta.label;
+        const active = c.type === t;
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          cardComments[i].type = t;
+          // Choosing a live type clears a resolved marker.
+          delete cardComments[i].resolvedBy;
+          delete cardComments[i].resolvedTs;
+          persistCardComments();
+          renderCommentCard();
+        });
+        selector.appendChild(btn);
+      });
+      entry.appendChild(selector);
+
+      // --- body ---
       const ta = document.createElement('textarea');
       ta.className = 'comment-box-textarea';
       ta.value = c.body || '';
@@ -2056,10 +2275,104 @@
       ta.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); closeCommentBox(); }
       });
-
-      entry.appendChild(head);
       entry.appendChild(ta);
+
+      // --- agent replies (read-only) ---
+      if (c.replies && c.replies.length) {
+        const wrap = document.createElement('div');
+        wrap.className = 'comment-entry-replies';
+        c.replies.forEach(r => {
+          const rep = document.createElement('div');
+          rep.className = 'comment-reply';
+          const meta = document.createElement('div');
+          meta.className = 'comment-reply-meta';
+          meta.textContent = (r.author || 'agent') + (r.ts ? ' · ' + relTime(r.ts) : '');
+          const txt = document.createElement('div');
+          txt.className = 'comment-reply-text';
+          txt.textContent = r.text || '';
+          rep.appendChild(meta);
+          rep.appendChild(txt);
+          wrap.appendChild(rep);
+        });
+        entry.appendChild(wrap);
+      }
+
       commentList.appendChild(entry);
+    });
+
+    // --- "Show resolved (n)" toggle in the header ---
+    const header = commentBoxEl.querySelector('.comment-box-header');
+    let toggle = header.querySelector('.comment-show-resolved');
+    if (resolvedCount > 0) {
+      if (!toggle) {
+        toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'comment-show-resolved';
+        toggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          showResolved = !showResolved;
+          renderCommentCard();
+        });
+        header.appendChild(toggle);
+      }
+      toggle.textContent = (showResolved ? 'Hide' : 'Show') + ' resolved (' + resolvedCount + ')';
+    } else if (toggle) {
+      toggle.remove();
+    }
+  }
+
+  // Surface comments whose anchor text no longer matches any block.
+  function renderOrphanedComments() {
+    let panel = document.getElementById('orphaned-comments');
+    if (!orphanedComments.length) {
+      if (panel) panel.remove();
+      return;
+    }
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'orphaned-comments';
+      readerWrap.insertBefore(panel, readerWrap.firstChild);
+    }
+    panel.innerHTML = '';
+    const header = document.createElement('div');
+    header.className = 'orphaned-header';
+    header.textContent = 'Orphaned comments (' + orphanedComments.length + ') — anchored text not found';
+    panel.appendChild(header);
+    orphanedComments.forEach((c, i) => {
+      const meta = COMMENT_TYPE_META[c.type] || COMMENT_TYPE_META.ask;
+      const row = document.createElement('div');
+      row.className = 'orphaned-row';
+      const info = document.createElement('div');
+      info.className = 'orphaned-info';
+      const glyph = document.createElement('span');
+      glyph.className = 'comment-entry-glyph';
+      glyph.textContent = meta.glyph;
+      glyph.title = meta.label;
+      const txt = document.createElement('div');
+      txt.className = 'orphaned-text';
+      const anchor = document.createElement('div');
+      anchor.className = 'orphaned-anchor';
+      anchor.textContent = '“' + (c.anchor || '') + '”';
+      const body = document.createElement('div');
+      body.className = 'orphaned-body';
+      body.textContent = c.body || '';
+      txt.appendChild(anchor);
+      txt.appendChild(body);
+      info.appendChild(glyph);
+      info.appendChild(txt);
+      const del = document.createElement('button');
+      del.className = 'comment-box-delete-btn';
+      del.type = 'button';
+      del.title = 'Delete orphaned comment';
+      del.innerHTML = TRASH_ICON;
+      del.addEventListener('click', () => {
+        orphanedComments.splice(i, 1);
+        readerEl.dispatchEvent(new Event('input', { bubbles: true }));
+        renderOrphanedComments();
+      });
+      row.appendChild(info);
+      row.appendChild(del);
+      panel.appendChild(row);
     });
   }
 
@@ -2075,20 +2388,20 @@
     commentBoxEl.style.top = top + 'px';
   }
 
-  // opts: { addPrefix } adds a new entry with that prefix (highlight comment);
-  //       { focus } whether to focus a textarea (false for hover preview).
+  // opts: { addAnchor } adds a new comment anchored to that text (highlight or
+  //       block snippet); { focus } whether to focus a textarea (false on hover).
   function openCommentCard(block, opts = {}) {
     if (!block || !commentBoxEl) return;
-    const { addPrefix = null, focus = true } = opts;
+    const { addAnchor = null, focus = true } = opts;
     activeHoverElement = block;
     cardComments = getComments(block);
     let focusIndex = -1;
-    if (addPrefix !== null) {
-      cardComments.push({ prefix: sanitizePrefix(addPrefix), body: '' });
+    if (addAnchor !== null) {
+      cardComments.push(makeComment(addAnchor));
       focusIndex = cardComments.length - 1;
     } else if (cardComments.length === 0) {
       // Opening an empty block via its gutter button → start a block note.
-      cardComments.push({ prefix: sanitizePrefix(getCommentPrefixForElement(block)), body: '' });
+      cardComments.push(makeComment(getCommentPrefixForElement(block)));
       focusIndex = cardComments.length - 1;
     }
     renderCommentCard();
@@ -2129,7 +2442,7 @@
     commentAddBtn.addEventListener('click', (e) => {
       e.preventDefault();
       if (!activeHoverElement) return;
-      cardComments.push({ prefix: sanitizePrefix(getCommentPrefixForElement(activeHoverElement)), body: '' });
+      cardComments.push(makeComment(getCommentPrefixForElement(activeHoverElement)));
       renderCommentCard();
       const tas = commentBoxEl.querySelectorAll('.comment-box-textarea');
       const last = tas[tas.length - 1];
@@ -2196,7 +2509,16 @@
         mdBlocks.push(md);
       }
     }
-    return mdBlocks.join('\n\n');
+    let body = mdBlocks.join('\n\n');
+    // Orphaned comments (anchor no longer found) are kept at the end so they
+    // survive saves and may re-anchor on a later load.
+    if (orphanedComments.length) {
+      body += '\n\n' + orphanedComments.map(serializeComment).join('\n\n');
+    }
+    // Prepend the agent contract exactly once whenever any comment exists.
+    const hasComments = readerEl.querySelector('[data-comments]') || orphanedComments.length;
+    if (hasComments) body = AGENT_CONTRACT + '\n\n' + body;
+    return body;
   }
 
   // ---------- Visual Editor Input handling ----------

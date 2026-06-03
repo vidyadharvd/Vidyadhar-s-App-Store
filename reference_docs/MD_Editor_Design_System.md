@@ -257,17 +257,24 @@ Quick-copy and comment buttons attached to each block (paragraph, heading, table
 - Min hit target **28×28px** on desktop, **44×44px** on touch. Maintain ≥8px between adjacent targets.
 - Resting `--fgColor-muted`; hover bg `--bgColor-hover` + `--fgColor-default`; focus-visible → 2px `--borderColor-focus` ring at `--focus-outlineOffset`.
 
-### 5.8 Floating comment card
+### 5.8 Floating comment card (typed comments)
 - `--bgColor-overlay`, `--radius-lg`, `--shadow-floating`, `--z-commentCard`. Anchored to the right margin of the active block.
-- Contains a textarea (`--bgColor-inset`, `--radius-sm`) and a **Delete** (danger text) action in the header.
-- **Live autosave — no Save button.** Every keystroke writes the comment to the block's draft immediately (same autosave path as the body text), so the card has no explicit save action. The card is purely for editing; closing it never loses or commits anything beyond what's already persisted. Clearing the textarea (or pressing Delete) removes the comment.
+- **List editor.** A block can hold multiple comments; the card lists each as a row: anchor label (the quoted source text, italic `--fgColor-muted`), a **type selector**, a body textarea (`--bgColor-inset`, `--radius-sm`), read-only agent replies, and a **Delete** (danger) action. A header **"+ Add a note"** appends a block-level comment.
+- **Comment types (intent for the downstream AI agent).** Each comment carries a `type`, set live via a 3-button selector `[? Ask] [↳ Reply] [✎ Edit]` (active = `--bgColor-accent-muted` + `--fgColor-accent`). Default **Ask** — the only non-destructive option.
+  - `ask` — agent answers in chat only; no file change.
+  - `reply` — agent appends a nested reply block; replies render read-only, indented under the comment with author + timestamp.
+  - `edit` — agent edits the doc, then flips the comment to `resolved`.
+  - `resolved` — dimmed and hidden behind a **"Show resolved (n)"** header toggle; choosing a live type reopens it.
+- **Anchoring.** Comments relocate by `anchor` (a substring of the source text), not by position; a comment whose anchor no longer matches surfaces in the orphaned-comments panel (top of `#preview-container`, `--fgColor-attention` accent) and is preserved on save.
+- **Live autosave — no Save button.** Type changes and every keystroke write to the block's draft immediately. The card is purely for editing; closing never loses or commits anything beyond what's already persisted. Delete (per row) removes that comment.
 - **Lifecycle / lock states — see §6. This is the most failure-prone component.**
-- **Dismiss (not save):** `Ctrl/Cmd + Enter` closes the card; `Esc` closes it and restores focus to the originating block's comment button. Both are dismiss-only — the draft is already current either way.
+- **Dismiss (not save):** `Ctrl/Cmd + Enter` closes the card; `Esc` closes it and restores focus to the originating block's comment button. Both are dismiss-only.
+- **Serialization & agent contract.** Comments persist as `<!-- comment id type author anchor ts -->…<!-- /comment -->` blocks (replies nested, `resolved` adds `resolved-by`/`resolved-ts`). A single `<!-- AGENT-CONTRACT … -->` block is prepended to any file containing comments, declaring the per-type rules so an agent reading the file behaves deterministically.
 
 ### 5.9 Highlight toolbar (`#highlight-toolbar`)
 - Appears on text selection inside `#reader`. `--bgColor-overlay`, `--radius-lg`, `--shadow-floating`, `--z-highlightToolbar` (above the comment card).
 - Positioned above the selection via `range.getBoundingClientRect()`; flip below if it would clip the viewport top.
-- Two actions: **Copy selection**, **Search selection** (opens `https://www.google.com/search?q=…` in a new tab).
+- Three actions: **Copy selection**, **Search selection** (opens `https://www.google.com/search?q=…` in a new tab), and **Comment on selection** (opens the comment card with a new comment anchored to the full selected text).
 - Dismiss on selection collapse, scroll, or `Esc`.
 
 ### 5.10 Table of Contents (right panel)
